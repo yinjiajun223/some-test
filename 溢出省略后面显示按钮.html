@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多行文本溢出显示详情按钮</title>
+<style>
+  /* 基础样式，用于美化卡片 */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f2f5;
+  }
+
+  .card {
+    background-color: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 600px; /* 设置一个最大宽度 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+  }
+
+  /* 核心样式的容器 */
+  .text-container {
+    position: relative; /* 关键1：为详情按钮创建定位上下文 */
+    line-height: 1.8; /* 设置一个舒适的行高 */
+    font-size: 16px;
+    color: #333;
+    /* 关键2：通过【行高 * 行数】设置一个固定的高度，超出部分隐藏 */
+    height: calc(1.8 * 16px * 3); /* 假设我们想显示3行 */
+    overflow: hidden; /* 隐藏超出高度的文本 */
+  }
+
+  /* 详情链接的样式 */
+  .details-link {
+    position: absolute; /* 关键3：将详情按钮设置为绝对定位 */
+    bottom: 0; /* 定位到容器的底部 */
+    right: 0; /* 定位到容器的右侧 */
+
+    /* 关键4：设置背景色与卡片背景色一致，以遮盖下方的文字 */
+    background-color: #fff; 
+    color: #1677ff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding-left: 4px; /* 防止按钮紧贴文字 */
+  }
+
+  /* 关键5：使用伪元素 ::before 来创建省略号 */
+  .details-link::before {
+    content: "... "; /* 省略号和后面的一个空格 */
+    color: #333; /* 让省略号和正文颜色一致 */
+    font-weight: normal;
+  }
+
+  .details-link:hover {
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="text-container">
+    <a href="#" class="details-link">详情</a>
+    学校奖学金知识库文件一、引言 在教育的广阔天地中，奖学金宛如熠熠生辉的灯塔，照亮学生们奋进的道路。它是学校精心构筑的激励机制，承载着对学生努力学习、全面发展的殷切期望。其意义不仅在于对学生过往成绩的肯定，更在于为他们未来的成长注入源源不断的动力。积极向上的学风建设、追求卓越的校园文化，都离不开奖学金这一有效的价值导向。本文件旨在系统梳理与奖学金相关的各项规定与流程，确保评选工作的公开、公平与公正。
+  </div>
+</div>
+
+</body>
+</html>

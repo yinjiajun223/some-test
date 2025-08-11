@@ -1,0 +1,23 @@
+:root {
+  --cx-success: #1bb972;
+  --cx-success-light-1: rgba(27, 185, 114, 0.1);
+  --cx-success-mix-1: rgb(49.8, 192, 128.1);
+  --cx-success-light-2: rgba(27, 185, 114, 0.2);
+  --cx-success-mix-2: rgb(72.6, 199, 142.2);
+  --cx-success-light-3: rgba(27, 185, 114, 0.3);
+  --cx-success-mix-3: rgb(95.4, 206, 156.3);
+  --cx-success-light-4: rgba(27, 185, 114, 0.4);
+  --cx-success-mix-4: rgb(118.2, 213, 170.4);
+  --cx-success-light-5: rgba(27, 185, 114, 0.5);
+  --cx-success-mix-5: rgb(141, 220, 184.5);
+  --cx-success-light-6: rgba(27, 185, 114, 0.6);
+  --cx-success-mix-6: rgb(163.8, 227, 198.6);
+  --cx-success-light-7: rgba(27, 185, 114, 0.7);
+  --cx-success-mix-7: rgb(186.6, 234, 212.7);
+  --cx-success-light-8: rgba(27, 185, 114, 0.8);
+  --cx-success-mix-8: rgb(209.4, 241, 226.8);
+  --cx-success-light-9: rgba(27, 185, 114, 0.9);
+  --cx-success-mix-9: rgb(232.2, 248, 240.9);
+}
+
+/*# sourceMappingURL=color.css.map */

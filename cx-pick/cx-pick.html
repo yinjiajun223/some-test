@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>选人插件</title>
+    <script src="./js/vue.global.js"></script>
+    <script src="./js/md5.js"></script>
+    <!-- <script src="https://fe.chaoxing.com/comp/newpick/beta/pick.js"></script> -->
+    <!-- <script src="../dist/beta/pick.js"></script> -->
+    <script src="./js/data.js"></script>
+  </head>
+  <body>
+    <div style="padding: 10px 20px; background: #f2f2f2">
+      <label style="margin-right: 20px">切换版本</label>
+      <select id="select">
+        <option value="2.0.0">2.0.0</option>
+        <option value="2.1.0">2.1.0</option>
+        <option value="2.2.0">2.2.0</option>
+        <option value="2.3.0">2.3.0</option>
+      </select>
+    </div>
+    <div id="app" style="display: flex; justify-content: space-around">
+      <pick
+        :appid="appid"
+        :time="time"
+        :enc="enc"
+        :use-currentfid="useCurrentfid"
+        :title="title"
+        :head-visible="headVisible"
+        :close-btn="closeBtn"
+        :apply-root="applyRoot"
+        :units-list="unitsList"
+        :company-firstlevel="companyFirstlevel"
+        :disable-group="disableGroup"
+        :check-type="checkType"
+        :contacts-show-all="contactsShowAll"
+        :structure-show-all="structureShowAll"
+        :unchecked-list="uncheckedData"
+        :search-select="searchSelect"
+        :select-data="selectData"
+        :show-role="showRole"
+        :hide-user="hideUser"
+        @submit="changeSelect"
+        @close="closePick"></pick>
+    </div>
+    <script>
+      function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg); //匹配目标参数
+        if (r != null) return unescape(r[2]);
+        return null; //返回参数值
+      }
+      var version = getUrlParam("version") || "2.2.0";
+      document.getElementById("select").value = version;
+      document.getElementById("select").onchange = function () {
+        window.location.href = window.location.href.split("?")[0] + "?version=" + this.value;
+      };
+      document.write('<script crossorigin src="https://fe.chaoxing.com/comp/newpick/' + version + "/pick.js?t=" + version + '"><\/script>');
+      // document.write('<script crossorigin src="https://fe.chaoxing.com/comp/newpick/beta/pick.js"><\/script>');
+    </script>
+    <script type="module">
+      let timeStr = new Date().getTime();
+      let cookie = document.cookie;
+      let cookieObj = {};
+      cookie.split(";").forEach((item) => {
+        if (item.length > 0) {
+          cookieObj[item.split("=")[0].trim()] = item.split("=")[1].trim();
+        }
+      });
+      // &:contacts-show-all=all&:structure-show-all=all
+      const { createApp, ref, computed } = Vue;
+      // 创建一个 Vue 3 应用
+      createApp({
+        setup() {
+          let appid = ref("473e1d8c95000dd84a8b3ab3d4797544");
+          let time = ref(timeStr);
+          let enc = ref("");
+          let selectData = ref([]);
+          let uncheckedData = ref({
+            personsList: [],
+          });
+          let structureShowAll = ref("all");
+          let contactsShowAll = ref("all");
+          // NOTE: 是否显示角色组
+          let showRole = ref(true);
+          // NOTE: 是否隐藏用户
+          let hideUser = ref(true);
+          let headVisible = ref(true);
+          let closeBtn = ref(false);
+          let title = ref("添加成员");
+          let applyRoot = ref(["unit"]); //, "group", "clazz", "chat"
+          let searchSelect = ref(false);
+          let unitsList = ref([
+            // NOTE: 数据来源单位 -- 可自定义展示组织架构
+            { type: 2, fid: 217097 },
+            // { type: 2, isAll: true },
+            // { type: 4, isAll: true },
+          ]);
+          /*
+            { type: 1, fid: 126176 },
+            { type: 2, fid: 1385 },
+            { type: 3, fid: 214594 },
+          */
+          let useCurrentfid = ref(false);
+          let companyFirstlevel = ref(true);
+          let disableGroup = ref(false);
+          let checkType = ref("multiple");
+          let newVersion = version.split(".");
+          if (parseInt(newVersion[0]) == 1 && parseInt(newVersion[1]) <= 2) {
+            selectData.value = newDataOldVersion;
+            uncheckedData.value = uncheckListOldVersion;
+          } else {
+            selectData.value = newData;
+            uncheckedData.value = uncheckList;
+          }
+          let paramStr = "";
+          switch (parseInt(version.split(".")[0])) {
+            case 1:
+              if (parseInt(version.split(".")[1]) === 0) {
+                paramStr =
+                  ':title=添加成员&:head-visible=true&:close-btn=false&:apply-root=["unit","team"]&:units-list=[{"type":1,"fid":1385},{"type":2,"isAll":true}]&:disable-group=false&:check-type=multiple&:use-currentfid=false&:contacts-show-all=all&:structure-show-all=all&:company-firstlevel=true&:search-select=false';
+              } else if (parseInt(version.split(".")[1]) < 3) {
+                paramStr =
+                  ':apply-root=["unit","team"]&:check-type=multiple&:close-btn=false&:company-firstlevel=true&:contacts-show-all=all&:disable-group=false&:head-visible=true&:search-select=false&:structure-show-all=all&:title=添加成员&:units-list=[{"type":1,"fid":1385},{"type":2,"isAll":true}]&:use-currentfid=false';
+              } else {
+                paramStr =
+                  ':apply-root=["unit","team"]&:check-type=multiple&:close-btn=false&:company-firstlevel=true&:contacts-show-all="all"&:disable-group=false&:head-visible=true&:search-select=false&:structure-show-all="all"&:title=添加成员&:units-list=[{"type":1,"fid":1385},{"type":2,"isAll":true}]&:use-currentfid=false';
+              }
+              break;
+            case 2:
+              structureShowAll.value = { type: "all" };
+              contactsShowAll.value = { type: "all" };
+              paramStr = `:apply-root=${JSON.stringify(applyRoot.value)}&:check-type=${JSON.stringify(checkType.value)}&:close-btn=${JSON.stringify(
+                closeBtn.value
+              )}&:contacts-show-all=${JSON.stringify(contactsShowAll.value)}&:disable-group=${JSON.stringify(disableGroup.value)}&:head-visible=${JSON.stringify(
+                headVisible.value
+              )}&:hide-user=${JSON.stringify(hideUser.value)}&:search-select=${JSON.stringify(searchSelect.value)}&:show-role=${JSON.stringify(showRole.value)}&:structure-show-all=${JSON.stringify(structureShowAll.value)}&:title=${JSON.stringify(
+                title.value
+              )}&:units-list=${JSON.stringify(unitsList.value)}&:use-currentfid=${JSON.stringify(useCurrentfid.value)}`;
+
+              break;
+          }
+
+          console.log("cookieObj.UID", cookieObj.UID);
+          enc.value = md5(cookieObj.UID + paramStr + timeStr + "yM3&hN3~vO").toString();
+
+          console.log("paramStr", paramStr);
+          console.log("enc.value", enc.value);
+          console.log("md5", md5("测试"));
+          const changeSelect = (data) => {
+            console.log(data, "changeSelect");
+          };
+          const closePick = (data) => {
+            console.log("closePick", data);
+          };
+          return {
+            appid,
+            time,
+            enc,
+            disableGroup,
+            selectData,
+            structureShowAll,
+            contactsShowAll,
+            hideUser,
+            showRole,
+            uncheckedData,
+            headVisible,
+            closeBtn,
+            title,
+            checkType,
+            applyRoot,
+            searchSelect,
+            unitsList,
+            useCurrentfid,
+            companyFirstlevel,
+            changeSelect,
+            closePick,
+          };
+        },
+      })
+        .component("pick", pick)
+        .mount("#app");
+    </script>
+  </body>
+  <style>
+    body {
+      background-color: #ccc;
+    }
+  </style>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音转文字功能 - 本地开发解决方案</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: var(--light);
+            padding: 20px;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background-color: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card h2 {
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 i {
+            font-size: 1.8rem;
+            color: var(--success);
+        }
+        
+        .card p {
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+        
+        .solution-card {
+            border-top: 4px solid var(--success);
+        }
+        
+        .problem-card {
+            border-top: 4px solid var(--warning);
+        }
+        
+        .demo-card {
+            border-top: 4px solid var(--primary);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e76f11;
+        }
+        
+        .demo-section {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .demo-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        #result {
+            background-color: rgba(255, 255, 255, 0.1);
+            min-height: 150px;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            white-space: pre-wrap;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 50px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .status-inactive {
+            background-color: var(--danger);
+        }
+        
+        .status-active {
+            background-color: var(--success);
+        }
+        
+        .status-warning {
+            background-color: var(--warning);
+        }
+        
+        .code-block {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+        
+        .step-list {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .step-list li {
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-microphone-alt"></i> 解决本地开发麦克风权限问题</h1>
+            <p class="subtitle">在本地开发环境中，浏览器出于安全考虑通常会阻止麦克风权限访问。本页面提供多种解决方案，并包含一个语音转文字功能演示。</p>
+        </header>
+        
+        <div class="cards-container">
+            <div class="card problem-card">
+                <h2><i class="fas fa-exclamation-triangle"></i> 问题描述</h2>
+                <p>当你在本地文件系统（file://）或HTTP协议下开发时，现代浏览器会阻止网页访问麦克风等敏感设备。</p>
+                <p>这是因为浏览器实施的安全策略要求使用HTTPS协议才能访问这些API（除了localhost之外）。</p>
+                <p>错误信息通常为：NotAllowedError（Permission denied）或只在安全上下文中允许使用这些功能。</p>
+            </div>
+            
+            <div class="card solution-card">
+                <h2><i class="fas fa-lightbulb"></i> 完整解决方案</h2>
+                <p>以下是解决本地开发麦克风权限问题的可靠方法：</p>
+                <ol class="step-list">
+                    <li><strong>使用localhost开发</strong> - 通过本地服务器（如Live Server）运行你的应用</li>
+                    <li><strong>配置HTTPS</strong> - 为本地开发环境设置自签名证书</li>
+                    <li><strong>修改浏览器设置</strong> - 临时允许不安全的来源（仅用于开发）</li>
+                    <li><strong>使用开发工具</strong> - 如ngrok或localhost.run创建安全隧道</li>
+                </ol>
+                <div class="code-block">
+                    # 使用Python启动本地服务器<br>
+                    python -m http.server<br><br>
+                    
+                    # 安装和使用live-server<br>
+                    npm install -g live-server<br>
+                    live-server --port=8080
+                </div>
+            </div>
+            
+            <div class="card demo-card">
+                <h2><i class="fas fa-code"></i> 语音转文字演示</h2>
+                <p>此演示使用Web Speech API实现语音识别功能。</p>
+                <p>如果麦克风权限被阻止，请尝试上述解决方案中的一种。</p>
+                <p id="permission-status" class="status status-warning">麦克风权限状态：未知</p>
+                <p id="browser-support-status" class="status status-warning">浏览器支持状态：检测中...</p>
+                <a href="#demo" class="btn">跳转到演示 &darr;</a>
+            </div>
+        </div>
+        
+        <div id="demo" class="demo-section">
+            <h2><i class="fas fa-microphone-alt"></i> 语音转文字功能演示</h2>
+            <p>点击"开始录音"按钮并说话，您的语音将被转换为文字。</p>
+            
+            <div class="demo-controls">
+                <button id="start-btn" class="btn">
+                    <i class="fas fa-microphone"></i> 开始录音
+                </button>
+                <button id="stop-btn" class="btn btn-warning" disabled>
+                    <i class="fas fa-stop"></i> 停止录音
+                </button>
+                <button id="clear-btn" class="btn btn-warning">
+                    <i class="fas fa-trash"></i> 清除内容
+                </button>
+                <select id="language-select" class="btn">
+                    <option value="zh-CN">中文 (普通话)</option>
+                    <option value="en-US">English (US)</option>
+                    <option value="es-ES">Español</option>
+                    <option value="fr-FR">Français</option>
+                    <option value="ja-JP">日本語</option>
+                </select>
+            </div>
+            
+            <div id="result">识别结果将显示在这里...</div>
+            <p id="recording-status" class="status status-inactive">未录音</p>
+        </div>
+        
+        <footer>
+            <p>提示：在正式生产环境中，您的网站必须使用HTTPS协议才能访问麦克风权限。</p>
+            <p>本页面仅用于演示目的 | 本地开发麦克风权限解决方案</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查浏览器支持情况
+            const isSpeechRecognitionSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+            const statusElement = document.getElementById('browser-support-status');
+            
+            if (isSpeechRecognitionSupported) {
+                statusElement.textContent = '浏览器支持语音识别';
+                statusElement.className = 'status status-active';
+            } else {
+                statusElement.textContent = '浏览器不支持语音识别API';
+                statusElement.className = 'status status-inactive';
+            }
+            
+            // 检查麦克风权限状态
+            navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
+                const permissionElement = document.getElementById('permission-status');
+                
+                const updatePermissionStatus = () => {
+                    if (permissionStatus.state === 'granted') {
+                        permissionElement.textContent = '麦克风权限状态：已授予';
+                        permissionElement.className = 'status status-active';
+                    } else if (permissionStatus.state === 'denied') {
+                        permissionElement.textContent = '麦克风权限状态：已拒绝';
+                        permissionElement.className = 'status status-inactive';
+                    } else {
+                        permissionElement.textContent = '麦克风权限状态：未请求';
+                        permissionElement.className = 'status status-warning';
+                    }
+                };
+                
+                updatePermissionStatus();
+                permissionStatus.onchange = updatePermissionStatus;
+            }).catch(error => {
+                console.error('麦克风权限查询失败:', error);
+            });
+            
+            // 语音识别功能
+            if (isSpeechRecognitionSupported) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                const startBtn = document.getElementById('start-btn');
+                const stopBtn = document.getElementById('stop-btn');
+                const clearBtn = document.getElementById('clear-btn');
+                const resultDiv = document.getElementById('result');
+                const statusElement = document.getElementById('recording-status');
+                const languageSelect = document.getElementById('language-select');
+                
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = languageSelect.value;
+                
+                recognition.onstart = function() {
+                    statusElement.textContent = '正在录音...';
+                    statusElement.className = 'status status-active';
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                };
+                
+                recognition.onresult = function(event) {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            transcript += event.results[i][0].transcript;
+                        } else {
+                            transcript += event.results[i][0].transcript;
+                        }
+                    }
+                    resultDiv.textContent = transcript;
+                };
+                
+                recognition.onerror = function(event) {
+                    statusElement.textContent = '错误: ' + event.error;
+                    statusElement.className = 'status status-inactive';
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    
+                    if (event.error === 'not-allowed') {
+                        resultDiv.innerHTML = '麦克风权限被拒绝。请尝试以下解决方案：\n\n' +
+                            '1. 确保您使用的是localhost而不是file://路径\n' +
+                            '2. 检查浏览器地址栏中的麦克风权限设置\n' +
+                            '3. 尝试使用HTTPS协议（本地开发解决方案见上文）';
+                    }
+                };
+                
+                recognition.onend = function() {
+                    if (statusElement.textContent !== '错误: not-allowed') {
+                        statusElement.textContent = '录音已停止';
+                        statusElement.className = 'status status-inactive';
+                    }
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                };
+                
+                startBtn.addEventListener('click', function() {
+                    try {
+                        recognition.lang = languageSelect.value;
+                        recognition.start();
+                    } catch (error) {
+                        resultDiv.textContent = '启动错误: ' + error.message;
+                    }
+                });
+                
+                stopBtn.addEventListener('click', function() {
+                    recognition.stop();
+                });
+                
+                clearBtn.addEventListener('click', function() {
+                    resultDiv.textContent = '';
+                });
+                
+                // 添加键盘快捷键支持
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.key === ' ') {
+                        if (startBtn.disabled) {
+                            recognition.stop();
+                        } else {
+                            recognition.start();
+                        }
+                        e.preventDefault();
+                    }
+                });
+            } else {
+                document.getElementById('start-btn').disabled = true;
+                document.getElementById('result').textContent = 
+                    '您的浏览器不支持语音识别功能。请使用最新版本的Chrome、Edge或Firefox浏览器。';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>页面自适应</title>
+    <style>
+      .body {
+        margin: 0;
+      }
+      .container {
+        height: 100vh;
+        width: 100%;
+        display: flex;
+        box-sizing: border-box;
+        padding: 40px 100px;
+      }
+      .left {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .right {
+        flex: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="left" style="background-color: orange">
+        <div style="flex: 1; min-height: 0; overflow: auto">
+          <textarea style="min-height: 20vh"></textarea>
+          <div style="background-color: brown">
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+            <div>tag-area</div>
+          </div>
+          <textarea style="min-height: 20vh"></textarea>
+        </div>
+        <div style="background-color: aquamarine">button</div>
+      </div>
+      <div class="right" style="background-color: pink"></div>
+    </div>
+  </body>
+</html>

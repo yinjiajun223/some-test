@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iFream</title>
+  </head>
+  <body>
+    <h1 style="text-align: center; font-family: 'huangyuchenjiangxizhuokai'">
+      松果 --> cx --> iframe
+    </h1>
+
+    <div
+      style="border: 1px solid red; height: calc(100vh - 300px); width: 100%">
+      <!-- <iframe
+        id="iframe"
+        style="height: 100%; width: 100%; border: none"
+        src="http://whdxai.chaoxing.com:5173/frame/slice?knowledgeId=700784&uid=117920233&fileId=6e7c4e04-c773-4dd3-8976-9e4f57a846dd&fid=250199&timestamp=1751614411420&cn=67702f34b64603075501379942272733" -->
+      <iframe
+        id="iframe"
+        style="height: 100%; width: 100%; border: none"
+        src="http://mirror.libsou.com:5173/frame/slice?knowledgeId=703724&uid=117920233&fileId=c15c335c-2d69-49e0-ace1-fc99627b1e18&fid=250199&timestamp=1751894127297&cn=b7e17192afc0e789c1795d4277782087"></iframe>
+    </div>
+  </body>
+  <script>
+    const iframe = document.getElementById("iframe");
+
+    // 尝试访问iframe中的内容会抛出错误
+    try {
+      const iframeDocument =
+        iframe.contentDocument || iframe.contentWindow.document;
+      const bodyContent = iframeDocument.body.innerHTML; // 访问整个 body
+      const specificElement = iframeDocument.querySelector("some-selector"); // 访问特定元素
+      console.log(specificElement); // 检查是否能访问特定元素
+    } catch (e) {
+      console.error("无法访问iframe内容：", e);
+    }
+  </script>
+</html>
+
+<style>
+  @font-face {
+    font-family: "maokenwangtang";
+    src: url("./assets/fonts/maokenwangtang.ttf");
+    font-weight: normal;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "GenShinGothic-P-Regular";
+    src: url("./assets/fonts/GenShinGothic-P-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "simfang";
+    src: url("./assets/fonts/simfang.ttf");
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "YouSheBiaoTiHei-2";
+    src: url("./assets/fonts/YouSheBiaoTiHei-2.ttf");
+    font-weight: normal;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "huangyuchenjiangxizhuokai";
+    src: url("./assets/fonts/huangyuchenjiangxizhuokai.ttf");
+    font-weight: normal;
+    font-style: normal;
+  }
+</style>

@@ -1,0 +1,34 @@
+@use "sass:math";
+@use "sass:color";
+
+$color-success: #1bb972;
+$color-danger: #ff2c2c;
+
+// 生成单个透明度级别的CSS变量
+@mixin generate-opacity-level($color-name, $base-color, $level) {
+  --cx-#{$color-name}-light-#{$level}: #{rgba($base-color, math.div($level, 10))};
+}
+
+@mixin generate-mix-level($color-name, $base-color, $level) {
+  --cx-#{$color-name}-mix-#{$level}: #{color.mix(
+      #fff,
+      $base-color,
+      math.percentage(math.div($level, 10))
+    )};
+}
+
+// 批量生成透明度变量（1-9）
+@mixin generate-opacity-colors($color-name, $base-color) {
+  --cx-#{$color-name}: #{$base-color};
+
+  @for $i from 1 through 9 {
+    @include generate-opacity-level($color-name, $base-color, $i);
+    @include generate-mix-level($color-name, $base-color, $i);
+  }
+}
+
+:root {
+  // 生成success颜色的透明度变体
+  @include generate-opacity-colors("success", $color-success);
+  // @include generate-opacity-colors("error", $color-danger);
+}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>株式会社 E&K</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 自定义样式 */
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        /* 英雄区域背景图 */
+        .hero-bg {
+            background-image: url('https://images.unsplash.com/photo-1542051841857-5f90071e7989?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Tab 激活状态 */
+        .tab-active {
+            font-weight: 700;
+            color: #1f2937; /* text-gray-800 */
+            border-bottom: 2px solid #1f2937;
+        }
+
+        /* 语言切换器激活状态 */
+        .lang-active {
+            color: #1d4ed8; /* blue-700 */
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-gray-600">
+
+    <header class="bg-white border-b">
+        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <nav class="flex items-center space-x-8">
+                    <a href="#" class="text-sm font-medium hover:text-gray-900" data-translate-key="nav_company">会社紹介</a>
+                    <a href="#" class="text-sm font-medium hover:text-gray-900" data-translate-key="nav_contact">お問い合わせ</a>
+                </nav>
+                
+                <div class="absolute left-1/2 -translate-x-1/2">
+                    <span class="text-xl font-bold text-gray-800">株式会社 E&K</span>
+                </div>
+
+                <div class="flex items-center text-sm font-medium">
+                    <button onclick="changeLanguage('ja')" class="lang-switcher ja lang-active px-2 py-1">日本語</button>
+                    <span class="text-gray-300">|</span>
+                    <button onclick="changeLanguage('en')" class="lang-switcher en px-2 py-1">ENGLISH</button>
+                    <span class="text-gray-300">|</span>
+                    <button onclick="changeLanguage('zh')" class="lang-switcher zh px-2 py-1">中文</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="relative h-[500px] w-full text-white hero-bg">
+            <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+            <div class="relative z-10 flex items-center justify-between h-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="w-full md:w-1/2">
+                    <h1 class="text-5xl md:text-6xl font-bold leading-tight" data-translate-key="hero_title">街に息づく、<br>私たちの宿</h1>
+                    <p class="mt-4 text-lg max-w-md" data-translate-key="hero_subtitle">
+                        大都会の喧騒と日常の静寂を横断しながら、快適に過ごせるサイトをご提供します。日本の心、おもてなしの精神と共に、特別なひとときをお楽しみください。最高の体験を約束できます。
+                    </p>
+                </div>
+                <div class="hidden md:block">
+                    <img src="https://i.imgur.com/eBv68Q3.png" alt="Red Umbrella" class="w-80 h-80 lg:w-96 lg:h-96 object-contain">
+                </div>
+            </div>
+        </section>
+
+        <section class="py-16 sm:py-24">
+            <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl sm:text-5xl font-bold text-center text-gray-800" data-translate-key="find_stay_title">Find Your Stay</h2>
+                
+                <div class="mt-12 border-b border-gray-200">
+                    <div class="-mb-px flex justify-center space-x-8 sm:space-x-12" aria-label="Tabs">
+                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700" data-tab-target="#kawahouse">Kawahouse</button>
+                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700" data-tab-target="#cityrevillas">CityReVillas by Kawahouse</button>
+                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700" data-tab-target="#kawamountains">Kawamountains</button>
+                    </div>
+                </div>
+
+                <div class="mt-8 max-w-3xl mx-auto text-center">
+                    <div class="tab-content" id="kawahouse">
+                        <p data-translate-key="tab_kawahouse_desc">全8施設、都市の中心に位置する当社のアパートメントは、繁華街の便利さと地域文化の深さを兼ね備えた完璧な融合を提供します。地元の魅力を感じながら、快適な滞在が楽しめる空間を提供し、あなたの特別なひとときをサポートします。</p>
+                    </div>
+                    <div class="tab-content hidden" id="cityrevillas">
+                        <p data-translate-key="tab_cityrevillas_desc">CityReVillasは、より豪華で広々とした空間を求めるお客様のためのプレミアムな選択肢です。最新の設備と洗練されたデザインで、都市生活の新たなスタンダードを体験してください。</p>
+                    </div>
+                    <div class="tab-content hidden" id="kawamountains">
+                        <p data-translate-key="tab_kawamountains_desc">都会の喧騒から離れ、静かな自然に囲まれたい方へ。Kawamountainsは、四季折々の美しい景色と共に、心安らぐリトリート体験を提供します。</p>
+                    </div>
+                </div>
+
+                <div class="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=2070&auto=format&fit=crop" alt="Room 1" class="w-full h-64 object-cover rounded-lg shadow-md">
+                    <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop" alt="Room 2" class="w-full h-64 object-cover rounded-lg shadow-md">
+                    <img src="https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=2070&auto=format&fit=crop" alt="Room 3" class="w-full h-64 object-cover rounded-lg shadow-md">
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-gray-800 text-white">
+        <div class="max-w-screen-xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2025 株式会社 E&K. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- 多语言翻译数据 ---
+        const translations = {
+            ja: {
+                nav_company: '会社紹介',
+                nav_contact: 'お問い合わせ',
+                hero_title: '街に息づく、<br>私たちの宿',
+                hero_subtitle: '大都会の喧騒と日常の静寂を横断しながら、快適に過ごせるサイトをご提供します。日本の心、おもてなしの精神と共に、特別なひとときをお楽しみください。最高の体験を約束できます。',
+                find_stay_title: 'Find Your Stay',
+                tab_kawahouse_desc: '全8施設、都市の中心に位置する当社のアパートメントは、繁華街の便利さと地域文化の深さを兼ね備えた完璧な融合を提供します。地元の魅力を感じながら、快適な滞在が楽しめる空間を提供し、あなたの特別なひとときをサポートします。',
+                tab_cityrevillas_desc: 'CityReVillasは、より豪華で広々とした空間を求めるお客様のためのプレミアムな選択肢です。最新の設備と洗練されたデザインで、都市生活の新たなスタンダードを体験してください。',
+                tab_kawamountains_desc: '都会の喧騒から離れ、静かな自然に囲まれたい方へ。Kawamountainsは、四季折々の美しい景色と共に、心安らぐリトリート体験を提供します。',
+            },
+            en: {
+                nav_company: 'Company Info',
+                nav_contact: 'Contact Us',
+                hero_title: 'Our Inn that<br>Breathes in the City',
+                hero_subtitle: 'We provide a site for a comfortable stay, crossing between the hustle of the metropolis and the tranquility of daily life. Enjoy a special time with the heart of Japan and the spirit of hospitality. We promise the best experience.',
+                find_stay_title: 'Find Your Stay',
+                tab_kawahouse_desc: 'With 8 facilities located in the city center, our apartments offer a perfect blend of downtown convenience and deep local culture. We provide a space where you can enjoy a comfortable stay while feeling the charm of the area, supporting your special moments.',
+                tab_cityrevillas_desc: 'CityReVillas is a premium choice for guests seeking more luxurious and spacious accommodations. Experience a new standard of urban living with state-of-the-art facilities and sophisticated design.',
+                tab_kawamountains_desc: 'For those who wish to escape the city bustle and be surrounded by quiet nature. Kawamountains offers a peaceful retreat experience with beautiful scenery that changes with the seasons.',
+            },
+            zh: {
+                nav_company: '公司介绍',
+                nav_contact: '联系我们',
+                hero_title: '融入城市的<br>我们的住所',
+                hero_subtitle: '我们提供一个能让您在穿梭于大都市的喧嚣与日常的宁静之间，舒适度过的网站。伴随着日本之心与款待之精神，请享受特别的片刻。我们承诺为您带来最棒的体验。',
+                find_stay_title: '寻找您的住所',
+                tab_kawahouse_desc: '我们所有的8处公寓都位于市中心，完美融合了繁华街道的便利与深厚的地域文化。我们提供一个能让您感受当地魅力、享受舒适住宿的空间，为您的特别时刻提供支持。',
+                tab_cityrevillas_desc: 'CityReVillas是为寻求更豪华、更宽敞空间的客人准备的高级选择。通过最先进的设备和精致的设计，体验都市生活的新标准。',
+                tab_kawamountains_desc: '致希望远离城市喧嚣、被宁静自然环绕的您。Kawamountains提供与四季变换的美景相伴的、安心的静修体验。',
+            }
+        };
+
+        // --- 语言切换函数 ---
+        function changeLanguage(lang) {
+            // 更新所有带 data-translate-key 属性的元素
+            document.querySelectorAll('[data-translate-key]').forEach(el => {
+                const key = el.getAttribute('data-translate-key');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+
+            // 更新语言切换按钮的激活状态
+            document.querySelectorAll('.lang-switcher').forEach(btn => {
+                btn.classList.remove('lang-active');
+            });
+            document.querySelector(`.lang-switcher.${lang}`).classList.add('lang-active');
+        }
+
+        // --- Tab 切换逻辑 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // 默认激活第一个tab
+            if(tabs.length > 0) {
+                tabs[0].classList.add('tab-active');
+            }
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 移除所有tab的激活状态
+                    tabs.forEach(item => item.classList.remove('tab-active'));
+                    // 给当前点击的tab添加激活状态
+                    tab.classList.add('tab-active');
+
+                    // 隐藏所有tab内容
+                    const target = document.querySelector(tab.dataset.tabTarget);
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    // 显示目标tab内容
+                    if (target) {
+                        target.classList.remove('hidden');
+                    }
+                });
+            });
+            
+            // 页面加载时，默认设置为日语
+            changeLanguage('ja');
+        });
+    </script>
+
+</body>
+</html>

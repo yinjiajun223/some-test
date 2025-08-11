@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>API Sign & Request Tool (Minimalist)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+      /* ---=== Base & Typography ===--- */
+      :root {
+        --c-blue: #007aff;
+        --c-green: #34c759;
+        --c-red: #ff3b30;
+        --c-gray-1: #f2f2f7;
+        --c-gray-2: #e5e5ea;
+        --c-gray-3: #d1d1d6;
+        --c-text-1: #1d1d1f;
+        --c-text-2: #3a3a3c;
+        --c-bg: #ffffff;
+        --font-sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --c-blue: #0a84ff;
+          --c-green: #30d158;
+          --c-red: #ff453a;
+          --c-gray-1: #2c2c2e;
+          --c-gray-2: #3a3a3c;
+          --c-gray-3: #48484a;
+          --c-text-1: #f2f2f7;
+          --c-text-2: #aeaeb2;
+          --c-bg: #161618;
+        }
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font-sans);
+        background-color: var(--c-gray-1);
+        color: var(--c-text-1);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ---=== Main Layout & Sections ===--- */
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+        margin: 12px 0 32px;
+      }
+      section {
+        background-color: var(--c-bg);
+        border: 1px solid var(--c-gray-2);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      h2 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--c-gray-2);
+      }
+
+      /* ---=== Forms & Inputs ===--- */
+      .form-group {
+        margin-bottom: 16px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--c-text-2);
+        margin-bottom: 8px;
+      }
+      .input,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-family: var(--font-sans);
+        background-color: var(--c-gray-1);
+        border: 1px solid var(--c-gray-2);
+        border-radius: 8px;
+        color: var(--c-text-1);
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--c-blue);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-blue) 25%, transparent);
+      }
+      .input.mono,
+      textarea.mono {
+        font-family: var(--font-mono);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      /* ---=== Buttons & Actions ===--- */
+      .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 8px;
+        border: 1px solid var(--c-gray-3);
+        background-color: var(--c-bg);
+        color: var(--c-text-1);
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+      .btn:hover:not(:disabled) {
+        border-color: var(--c-text-2);
+        background-color: var(--c-gray-1);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn.primary {
+        background-color: var(--c-blue);
+        border-color: var(--c-blue);
+        color: white;
+      }
+      .btn.primary:hover:not(:disabled) {
+        background-color: color-mix(in srgb, var(--c-blue) 90%, black);
+      }
+      .btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      /* ---=== Table for Custom Params ===--- */
+      .param-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .param-table th,
+      .param-table td {
+        padding: 10px 4px;
+        text-align: left;
+        border-bottom: 1px solid var(--c-gray-2);
+        font-size: 14px;
+      }
+      .param-table .btn {
+        padding: 4px 8px;
+      }
+
+      /* ---=== API Response Area ===--- */
+      #responseSection {
+        display: none;
+      }
+      .response-status {
+        font-weight: 600;
+      }
+      .response-status.success {
+        color: var(--c-green);
+      }
+      .response-status.error {
+        color: var(--c-red);
+      }
+      #responseBody {
+        background-color: var(--c-gray-1);
+        padding: 12px;
+        border-radius: 8px;
+        min-height: 100px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: var(--font-mono);
+      }
+
+      /* ---=== Spinner Animation ===--- */
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid currentColor;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        animation: rotation 1s linear infinite;
+      }
+      @keyframes rotation {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="display: none">
+      <symbol id="icon-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </symbol>
+      <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <polyline points="1 20 1 14 7 14"></polyline>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+      </symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"></polyline>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        <line x1="10" y1="11" x2="10" y2="17"></line>
+        <line x1="14" y1="11" x2="14" y2="17"></line>
+      </symbol>
+    </svg>
+
+    <main>
+      <h1>API 签名与请求工具</h1>
+
+      <section id="params-container">
+        <h2>1. 配置参数</h2>
+        <div class="form-group">
+          <label for="secret">secretKey</label>
+          <input id="secret" class="input" type="password" placeholder="请输入密钥" />
+        </div>
+        <div id="requiredParamsContainer"></div>
+        <div class="form-group">
+          <label>其他自定义参数</label>
+          <table class="param-table">
+            <tbody id="additionalParamsBody"></tbody>
+          </table>
+        </div>
+        <div class="actions-grid">
+          <button id="btnFill" class="btn">
+            <svg><use href="#icon-refresh" /></svg><span>填充/刷新</span>
+          </button>
+          <button id="btnAdd" class="btn">
+            <svg><use href="#icon-plus" /></svg><span>添加自定义</span>
+          </button>
+          <button id="btnClear" class="btn">
+            <svg><use href="#icon-trash" /></svg><span>清空自定义</span>
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <h2>2. 生成签名</h2>
+        <div class="form-group">
+          <label>签名原串</label>
+          <textarea id="signSrc" class="mono" rows="5" hidden readonly></textarea>
+        </div>
+        <div class="form-group">
+          <label>sign (MD5)</label>
+          <textarea id="signOut" class="mono" rows="2" readonly></textarea>
+        </div>
+        <div class="form-group">
+          <label>JSON (Body 参考)</label>
+          <textarea id="jsonOut" class="mono" rows="8" readonly></textarea>
+        </div>
+        <button id="btnSendRequest" class="btn primary" style="width: 100%">
+          <span class="btn-icon"
+            ><svg><use href="#icon-send" /></svg
+          ></span>
+          <span class="btn-text">发送 GET 请求</span>
+        </button>
+      </section>
+
+      <section id="responseSection">
+        <h2>3. API 响应</h2>
+        <div class="form-group">
+          <label>请求状态</label>
+          <div id="responseStatus">尚未请求</div>
+        </div>
+        <div class="form-group">
+          <label>完整URL</label>
+          <textarea id="fullUrl" class="mono" rows="3" readonly></textarea>
+        </div>
+        <div class="form-group">
+          <label>响应内容</label>
+          <pre id="responseBody" class="mono"><code></code></pre>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- DOM Element Selection ---
+        const secretInput = document.getElementById("secret");
+        secretInput.value = "gX8]vY2&uY5/kE4=";
+        const requiredParamsContainer = document.getElementById("requiredParamsContainer");
+        const additionalParamsBody = document.getElementById("additionalParamsBody");
+        const paramsContainer = document.getElementById("params-container");
+        const btnAdd = document.getElementById("btnAdd");
+        const btnFill = document.getElementById("btnFill");
+        const btnClear = document.getElementById("btnClear");
+        const signSrcTextarea = document.getElementById("signSrc");
+        const signOutInput = document.getElementById("signOut");
+        const jsonOutTextarea = document.getElementById("jsonOut");
+        const btnSendRequest = document.getElementById("btnSendRequest");
+        const responseSection = document.getElementById("responseSection");
+        const responseStatus = document.getElementById("responseStatus");
+        const fullUrlTextarea = document.getElementById("fullUrl");
+        const responseBody = document.querySelector("#responseBody code");
+
+        const API_ENDPOINT = "http://zhou.chaoxing.com:9010/auth/secret/login";
+
+        const requiredParamsConfig = {
+          fid: { label: "租户ID (fid)", type: "number" },
+          uid: { label: "用户ID (uid)", type: "number" },
+          timestamp: { label: "时间戳 (timestamp)", type: "text" },
+          nonce: { label: "随机串 (nonce)", type: "text" },
+        };
+        const numericKeys = Object.keys(requiredParamsConfig).filter((k) => requiredParamsConfig[k].type === "number");
+
+        // --- CORE LOGIC (UNCHANGED) ---
+        function generateSign(params, secretKey) {
+          const keys = Object.keys(params).filter((k) => k !== "sign" && k !== "");
+          keys.sort();
+          const elements = keys.map((k) => `${k}=${params[k] ?? ""}`);
+          const signStr = elements.join("=") + secretKey;
+          return { sign: CryptoJS.MD5(signStr).toString(), signStr };
+        }
+
+        function collectParams() {
+          const obj = {};
+          for (const key in requiredParamsConfig) {
+            const input = document.getElementById(`param-${key}`);
+            const value = input.value;
+            if (numericKeys.includes(key)) {
+              obj[key] = value === "" ? 0 : parseFloat(value) || 0;
+            } else {
+              obj[key] = value;
+            }
+          }
+          const rows = additionalParamsBody.querySelectorAll(".param-row");
+          rows.forEach((r) => {
+            const k = r.querySelector(".input-k").value.trim();
+            const v = r.querySelector(".input-v").value;
+            if (k) obj[k] = v;
+          });
+          return obj;
+        }
+
+        function recalculate() {
+          const secret = secretInput.value ?? "";
+          const params = collectParams();
+          const { sign, signStr } = generateSign(params, secret);
+          signSrcTextarea.value = signStr;
+          signOutInput.value = sign;
+          jsonOutTextarea.value = JSON.stringify({ ...params, sign }, null, 2);
+        }
+
+        async function sendRequest() {
+          responseSection.style.display = "block";
+          const btnIcon = btnSendRequest.querySelector(".btn-icon");
+          const btnText = btnSendRequest.querySelector(".btn-text");
+          btnSendRequest.disabled = true;
+          btnIcon.innerHTML = `<div class="spinner"></div>`;
+          btnText.textContent = "请求中...";
+          responseStatus.textContent = "正在发送请求...";
+          responseStatus.className = "response-status";
+          responseBody.textContent = "";
+
+          const params = collectParams();
+          const { sign } = generateSign(params, secretInput.value ?? "");
+          const finalParams = { ...params, sign };
+          const query = new URLSearchParams(finalParams).toString();
+          const fullUrl = `${API_ENDPOINT}?${query}`;
+          fullUrlTextarea.value = fullUrl;
+
+          try {
+            const response = await fetch(fullUrl);
+            responseStatus.textContent = `成功: ${response.status} ${response.statusText}`;
+            responseStatus.className = response.ok ? "response-status success" : "response-status error";
+            const responseData = await response.text();
+            try {
+              responseBody.textContent = JSON.stringify(JSON.parse(responseData), null, 2);
+            } catch (e) {
+              responseBody.textContent = responseData;
+            }
+          } catch (error) {
+            console.error("Fetch Error:", error);
+            responseStatus.textContent = "请求失败";
+            responseStatus.className = "response-status error";
+            responseBody.innerHTML = `请求无法完成。这很可能是 **CORS 跨域策略** 导致的。\n\n请按 F12 打开浏览器开发者工具，在“控制台(Console)”中查看是否有关于 "Access-Control-Allow-Origin" 的错误信息。\n\n错误详情: ${error.message}`;
+          } finally {
+            btnSendRequest.disabled = false;
+            btnIcon.innerHTML = `<svg><use href="#icon-send"/></svg>`;
+            btnText.textContent = "发送 GET 请求";
+          }
+        }
+
+        // --- UI HELPER FUNCTIONS ---
+        function generateNonce() {
+          return Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+        }
+
+        function addAdditionalRow(key = "", value = "") {
+          const tr = document.createElement("tr");
+          tr.className = "param-row";
+          tr.innerHTML = `
+                <td><input class="input input-k" type="text" placeholder="key" value="${key}"></td>
+                <td><input class="input input-v" type="text" placeholder="value" value="${value}"></td>
+                <td><button class="btn btn-del"><svg><use href="#icon-trash"/></svg></button></td>
+            `;
+          tr.querySelector(".btn-del").addEventListener("click", () => {
+            tr.remove();
+            recalculate();
+          });
+          additionalParamsBody.appendChild(tr);
+        }
+
+        function autofill() {
+          document.getElementById("param-timestamp").value = String(Date.now());
+          document.getElementById("param-nonce").value = generateNonce();
+          document.getElementById("param-fid").value = "217097";
+          document.getElementById("param-uid").value = "117920233";
+          recalculate();
+        }
+
+        function clearAdditionalRows() {
+          additionalParamsBody.innerHTML = "";
+          recalculate();
+        }
+
+        function init() {
+          for (const key in requiredParamsConfig) {
+            const config = requiredParamsConfig[key];
+            const group = document.createElement("div");
+            group.className = "form-group";
+            const inputType = config.type === "number" ? "number" : "text";
+            const isReadonly = key === "timestamp" || key === "nonce";
+            group.innerHTML = `
+                    <label for="param-${key}">${config.label}</label>
+                    <input id="param-${key}" class="input" type="${inputType}" ${isReadonly ? "readonly" : ""}>
+                `;
+            requiredParamsContainer.appendChild(group);
+          }
+
+          // Event Listeners
+          btnAdd.addEventListener("click", () => addAdditionalRow());
+          btnFill.addEventListener("click", autofill);
+          btnClear.addEventListener("click", clearAdditionalRows);
+          btnSendRequest.addEventListener("click", sendRequest);
+          paramsContainer.addEventListener("input", (event) => {
+            if (event.target.matches("input")) {
+              recalculate();
+            }
+          });
+
+          autofill();
+        }
+
+        init();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Web Component 示例</title>
+  </head>
+  <body>
+    <!--  自定义内置元素 -- 基于已有的原生 HTML 元素（如 <button>、<input>）扩展功能，继承自具体 HTML 元素类（如 HTMLButtonElement）。 -->
+    <button onclick="alert('我是原生button')">这是原生button 点击我</button>
+    <button is="fancy-button" onclick="alert('我是自定义内置元素')">这是自定义内置元素 点击我</button>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+
+    <!-- 使用自定义组件 -->
+    <my-card style="color: red" title="欢迎">这是一个原生 Web Component 示例。</my-card>
+    <my-card title="欢迎">这是一个原生 Web Component 示例2。</my-card>
+
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+
+    <!-- 使用组件 -->
+    <my-label text="你好 Web Component!" color="blue"></my-label>
+
+    <!-- 控制属性变化 -->
+    <button onclick="changeLabel()">修改属性 -- 属性变化监听</button>
+    <!-- 模板定义 -->
+    <template id="my-card-template">
+      <style>
+        .card {
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          padding: 16px;
+          max-width: 300px;
+          box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+          font-family: sans-serif;
+        }
+        .title {
+          font-size: 1.2em;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        .content {
+          font-size: 1em;
+          color: #333;
+        }
+      </style>
+      <div class="card">
+        <div class="title" id="title"></div>
+        <div class="content"><slot></slot></div>
+        <input type="text" id="input" />
+      </div>
+    </template>
+
+    <script>
+      /*  ---------------- 自定义内置元素 ---------------- */
+      class FancyButton extends HTMLButtonElement {
+        connectedCallback() {
+          this.style.background = "gold";
+          this.style.border = "2px solid black";
+        }
+      }
+      customElements.define("fancy-button", FancyButton, { extends: "button" });
+
+      /*  ---------------- 自定义组件 ---------------- */
+      class MyCard extends HTMLElement {
+        static observedAttributes = ["size"];
+
+        constructor() {
+          super();
+          console.log("this", this);
+          const shadow = this.attachShadow({ mode: "open" });
+          const template = document.getElementById("my-card-template");
+          const content = template.content.cloneNode(true);
+          shadow.appendChild(content);
+        }
+
+        //   元素添加到文档中时调用
+        connectedCallback() {
+          console.log("connectedCallback 元素添加到文档中时调用");
+          const title = this.getAttribute("title") || "无标题";
+          this.shadowRoot.getElementById("title").textContent = title;
+        }
+
+        // 元素从文档中移除时调用
+        disconnectedCallback() {
+          console.log("disconnectedCallback 元素从文档中移除时调用");
+        }
+
+        // 元素被移动到新文档中时调用
+        adoptedCallback() {
+          console.log("adoptedCallback 元素被移动到新文档中时调用");
+        }
+
+        // 属性更改、添加、移除或替换时调用
+        attributeChangedCallback(name, oldValue, newValue) {
+          console.log("attributeChangedCallback 属性值发生变化时调用 ");
+          console.log(`属性 ${name} 已由 ${oldValue} 变更为 ${newValue}。`);
+        }
+      }
+      customElements.define("my-card", MyCard);
+      /*  ---------------- 属性变化监听 ---------------- */
+      class MyLabel extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+          this.shadowRoot.innerHTML = `<span id="label">默认文本</span>`;
+        }
+
+        // 监听属性
+        static get observedAttributes() {
+          return ["text", "color"];
+        }
+
+        // 属性变化时触发
+        attributeChangedCallback(name, oldValue, newValue) {
+          alert(`attributeChangedCallback 属性值发生变化时调用 ${name} ${oldValue} ${newValue}`);
+          const label = this.shadowRoot.getElementById("label");
+          if (name === "text") {
+            label.textContent = newValue;
+          } else if (name === "color") {
+            label.style.color = newValue;
+          }
+        }
+
+        // 初始挂载时设置属性内容
+        connectedCallback() {
+          this.attributeChangedCallback("text", "", this.getAttribute("text"));
+          this.attributeChangedCallback("color", "", this.getAttribute("color"));
+        }
+      }
+      customElements.define("my-label", MyLabel);
+      // 修改属性的函数
+      function changeLabel() {
+        const label = document.querySelector("my-label");
+        label.setAttribute("text", "属性已更新");
+        label.setAttribute("color", "red");
+      }
+    </script>
+  </body>
+</html>
