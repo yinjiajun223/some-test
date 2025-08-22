@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <a id="jump" href="https://www.example.com" target="_blank">跳转</a>
+    <!-- <div id="jump">跳转</div> -->
+
+    <script>
+      const jumpLink = document.getElementById("jump");
+      jumpLink.addEventListener("click", async function (event) {
+        await fetch("http://192.168.40.128:3000/hello")
+          .then((response) => response.json())
+          .then((data) => console.log(data))
+          .catch((error) => alert(`报错: ${error.message}`));
+
+        // window.open("https://www.example.com", "_blank");
+      });
+    </script>
+  </body>
+</html>

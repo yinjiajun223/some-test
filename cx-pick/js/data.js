@@ -14,7 +14,7 @@
 let newData = {
   // 单位模块 角色组、角色
   rolesList: [
-    // { fid: 1385, roleGroupId: 1, name: "默认角色" }, //默认角色组
+    { fid: 217097, roleGroupId: 4652, name:"AI 能力中心" }, //默认角色组
     // { fid: 1385, roleId: 2161791, name: "信息安全团队" }, //超星集团 自定义角色组 滚动后最后一个角色
   ],
   // 单位模块 单位、组织架构、部门
@@ -24,8 +24,8 @@ let newData = {
   //groupId: 21695623
   // NOTE: 部门回显数据
   deptsList: [
-    { id: "AA1DBE346BE53C52C744BA3466E0E610", name: "2" ,pic:"https://pan-yz.chaoxing.com/thumbnail/origin/2d87595486b0f93e4a01d26e1c4b52be"}, // 部门回显
-    { id: 2537789, name: "协作者"  }, // NOTE: 角色回显
+    // { id: "AA1DBE346BE53C52C744BA3466E0E610", name: "2" ,pic:"https://pan-yz.chaoxing.com/thumbnail/origin/2d87595486b0f93e4a01d26e1c4b52be"}, // 部门回显
+    // { id: 2537789, name: "协作者"  }, // NOTE: 角色回显
     // // 有id 部门id/架构id fid 单位id
     // { fid: 201464, name: "定制世贸单位" },
     // {

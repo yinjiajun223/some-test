@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>模拟权限设置弹窗</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .url-input-section {
+        margin-bottom: 20px;
+      }
+      .url-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+      .url-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      }
+      .controls {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 0 5px;
+      }
+      .btn:hover {
+        background-color: #0056b3;
+      }
+      .btn:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+      }
+      .iframe-container {
+        text-align: center;
+      }
+      #dynamicIframe {
+        width: 700px;
+        height: 800px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        overflow: hidden;
+        display: none;
+      }
+      .placeholder {
+        width: 700px;
+        height: 800px;
+        border: 2px dashed #ccc;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font-size: 16px;
+        margin: 0 auto;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2 style="text-align: center; color: #333">权限设置弹窗</h2>
+
+      <div class="url-input-section">
+        <label for="urlInput">输入iframe地址：</label>
+        <input type="text" id="urlInput" class="url-input" placeholder="请输入完整的URL地址，例如：http://dev-web.cxai.chaoxing.com:5174/managerpage/frame/agent-audit?..." />
+      </div>
+
+      <div class="controls">
+        <button class="btn" onclick="loadIframe()">加载iframe</button>
+        <button class="btn" onclick="clearIframe()">清空</button>
+      </div>
+
+      <div class="iframe-container">
+        <div id="placeholder" class="placeholder">请输入URL地址并点击"加载iframe"按钮</div>
+        <iframe id="dynamicIframe" frameborder="0"></iframe>
+      </div>
+    </div>
+
+    <script>
+      // 加载iframe
+      function loadIframe() {
+        const urlInput = document.getElementById("urlInput");
+        const iframe = document.getElementById("dynamicIframe");
+        const placeholder = document.getElementById("placeholder");
+        const url = urlInput.value.trim();
+
+        if (!url) {
+          alert("请输入有效的URL地址");
+          return;
+        }
+
+        // 简单的URL验证
+        try {
+          new URL(url);
+        } catch (e) {
+          alert("请输入有效的URL格式");
+          return;
+        }
+
+        // 隐藏占位符，显示iframe
+        placeholder.style.display = "none";
+        iframe.style.display = "block";
+        iframe.src = url;
+
+        console.log("加载iframe:", url);
+      }
+
+      // 清空iframe
+      function clearIframe() {
+        const urlInput = document.getElementById("urlInput");
+        const iframe = document.getElementById("dynamicIframe");
+        const placeholder = document.getElementById("placeholder");
+
+        urlInput.value = "";
+        iframe.src = "";
+        iframe.style.display = "none";
+        placeholder.style.display = "flex";
+
+        console.log("已清空iframe");
+      }
+
+      // 监听回车键
+      document.getElementById("urlInput").addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          loadIframe();
+        }
+      });
+
+      // 监听iframe的postMessage事件
+      window.addEventListener("message", function (event) {
+        console.log("收到iframe消息:", event);
+
+        // 处理不同类型的消息
+        if (event.data && event.data.type) {
+          switch (event.data.type) {
+            case "close":
+              console.log("iframe请求关闭，数据:", event.data.data);
+              handleIframeClose(event.data.data);
+              break;
+            default:
+              console.log("未知消息类型:", event.data.type);
+              break;
+          }
+        }
+      });
+
+      // 处理iframe关闭事件
+      function handleIframeClose(data) {
+        console.log("处理iframe关闭事件，收到数据:", data);
+
+        // 可以在这里添加自定义逻辑
+        // 例如：显示确认对话框、保存数据、关闭iframe等
+
+        const shouldClose = confirm("iframe请求关闭，是否确认关闭？\n\n收到的数据: " + JSON.stringify(data, null, 2));
+
+        if (shouldClose) {
+          clearIframe();
+          alert("iframe已关闭");
+        }
+      }
+    </script>
+  </body>
+</html>
