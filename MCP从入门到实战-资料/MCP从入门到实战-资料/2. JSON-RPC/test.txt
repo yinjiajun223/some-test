@@ -1,0 +1,3 @@
+{ "jsonrpc": "2.0", "method": "sum", "params": { "a": 11, "b": 22 }, "id": 1 }
+
+{ "jsonrpc": "2.0", "method": "createFile", "params": {  "filename": "/Users/yuanjin/Desktop/渡一MCP.txt", "content": "Hello, 渡一MCP!" }, "id": 2 }

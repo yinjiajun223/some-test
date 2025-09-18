@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <!-- // 这个先引入的，给它加选择器的优先级，就是改成 html:root 这样就会比下面的 --color: green 优先级高 -->
+    <style>
+      #app {
+        padding: 100px;
+      }
+      html:root {
+        --color: red;
+      }
+    </style>
+    <style>
+      :root {
+        --color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" style="background-color: var(--color)"></div>
+  </body>
+</html>

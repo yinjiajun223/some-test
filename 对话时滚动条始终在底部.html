@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        <div class="list" id="messageList"></div>
+        <div class="empty-box"></div>
+        <div class="footer">
+          <input type="text" id="messageInput" placeholder="输入消息后回车或点发送" />
+          <button id="sendBtn">发送</button>
+          <button id="appendBtn">加文字</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      .container {
+        height: 500px;
+        width: 400px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column-reverse;
+        padding: 0 16px;
+        border: 2px solid #eee;
+        scroll-behavior: smooth;
+      }
+
+      .box {
+        width: 100%;
+        flex: 1 1;
+        align-self: center;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .empty-box {
+        flex-grow: 1;
+      }
+
+      .footer {
+        position: sticky;
+        width: 100%;
+        bottom: 0;
+        background: #fff;
+      }
+    </style>
+  </body>
+
+  <script>
+    let list = [
+      { id: 1, message: "这是第一条消息" },
+      { id: 2, message: "这是第二条消息" },
+      { id: 3, message: "这是第3条消息" },
+      { id: 4, message: "这是第4条消息" },
+      { id: 5, message: "这是第5条消息" },
+      { id: 6, message: "这是第6条消息" },
+      { id: 7, message: "这是第7条消息" },
+      { id: 8, message: "这是第8条消息" },
+    ];
+
+    const listEl = document.getElementById("messageList");
+    const containerEl = document.querySelector(".container");
+    const inputEl = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const appendBtn = document.getElementById("appendBtn");
+
+    function renderAll() {
+      listEl.innerHTML = "";
+      list.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.dataset.id = item.id;
+        div.textContent = item.message;
+        listEl.appendChild(div);
+      });
+    //   scrollToBottom();
+    }
+
+    // function scrollToBottom() {
+    //   // 保持滚动条在底部
+    //   containerEl.scrollTop = containerEl.scrollHeight;
+    // }
+
+    function sendMessage() {
+      const val = inputEl.value.trim();
+      if (!val) return;
+      const newItem = { id: list.length ? list[list.length - 1].id + 1 : 1, message: val };
+      list.push(newItem);
+      // 追加 DOM 节点避免全量重渲染
+      const div = document.createElement("div");
+      div.className = "item";
+      div.dataset.id = newItem.id;
+      div.textContent = newItem.message;
+      listEl.appendChild(div);
+      inputEl.value = "";
+    //   scrollToBottom();
+      inputEl.focus();
+    }
+
+    function addMessageText() {
+      const val = inputEl.value.trim();
+      if (!val || list.length === 0) return;
+      list[list.length - 1].message += " " + val;
+      const lastNode = listEl.lastElementChild;
+      if (lastNode) lastNode.textContent = list[list.length - 1].message;
+      inputEl.value = "";
+      // 追加文本后仍保持底部
+    //   scrollToBottom();
+      inputEl.focus();
+    }
+
+    // 事件绑定
+    sendBtn.addEventListener("click", sendMessage);
+    appendBtn.addEventListener("click", addMessageText);
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    // 初始化
+    renderAll();
+  </script>
+</html>

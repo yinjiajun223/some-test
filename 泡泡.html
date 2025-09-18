@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS 气泡效果</title>
+  <style>
+    /* 基础样式重置 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #008c8c; /* 淡蓝色背景 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* 气泡容器 */
+    .bubble-container {
+      position: relative;
+    }
+
+    /* 气泡主体 */
+    .bubble {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1); /* 半透明白色 */
+      
+      /* 多层阴影模拟气泡光晕 */
+      box-shadow: 
+        0 0 60px rgba(255, 255, 255, 0.1),  /* 外层扩散光 */
+        0 0 30px rgba(255, 255, 255, 0.2),  /* 中层过渡光 */
+        inset 0 0 30px rgba(255, 255, 255, 0.8); /* 内发光增强通透感 */
+      
+      position: relative;
+      animation: float 4s ease-in-out infinite; /* 悬浮动画（可选） */
+    }
+
+    /* 气泡高光效果 */
+    .bubble::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 30px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      
+      /* 径向渐变高光 */
+      background: radial-gradient(
+        circle at 30% 30%, 
+        rgba(255, 255, 255, 0.2),  /* 高光中心 */
+        rgba(255, 255, 255, 0) 50%  /* 高光边缘过渡 */
+      );
+      transform: rotate(-10deg);
+    }
+
+    /* 可选：气泡悬浮动画 */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="bubble-container">
+    <div class="bubble"></div>
+  </div>
+</body>
+</html>
