@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态层级步骤条 - Element Plus 方案</title>
+    <!-- 引入 Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 引入 Element Plus 样式和组件库 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <!-- 引入 Tailwind CSS (可选，用于辅助布局) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        #app {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        /* 自定义Element Plus步骤条的样式，使其更接近设计图 */
+        .el-steps.el-steps--vertical {
+            height: auto;
+        }
+        .el-step__title {
+            font-size: 16px !important;
+            font-weight: 600;
+        }
+        .el-step__description {
+            padding-bottom: 20px;
+        }
+        .el-collapse {
+            border-top: none;
+            margin-top: 15px;
+        }
+        .el-collapse-item__header {
+            font-weight: 500;
+        }
+        .el-collapse-item__wrap {
+            border-bottom: none;
+        }
+
+        /* 自定义孙代步骤的样式 */
+        .sub-step-list {
+            padding-left: 10px;
+        }
+        .sub-step-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .sub-step-marker {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 12px;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease;
+        }
+        .sub-step-item[data-status="finish"] .sub-step-marker { background-color: #409EFF; }
+        .sub-step-item[data-status="process"] .sub-step-marker { background-color: #409EFF; animation: pulse 1.5s infinite; }
+        .sub-step-item[data-status="wait"] .sub-step-marker { border: 1px solid #C0C4CC; background-color: #FFF; }
+        
+        .sub-step-item[data-status="wait"] .sub-step-title { color: #909399; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(64, 158, 255, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(64, 158, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(64, 158, 255, 0); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+<div id="app" class="w-full max-w-3xl">
+    <div class="flex justify-start mb-8">
+        <el-button type="primary" @click="startStreaming">重新开始</el-button>
+    </div>
+
+    <el-steps :active="activeStep" direction="vertical" class="w-full">
+        <el-step
+            v-for="step in steps"
+            :key="step.id"
+            :title="step.title"
+            :status="getElStatus(step.status)"
+        >
+            <template #description>
+                <div class="text-gray-500">{{ step.description }}</div>
+                
+                <el-collapse v-if="step.children && step.children.length > 0" v-model="activeCollapses" class="mt-4">
+                    <el-collapse-item
+                        v-for="child in step.children"
+                        :key="child.id"
+                        :title="child.title"
+                        :name="child.id"
+                    >
+                        <div class="sub-step-list">
+                            <div v-for="grandchild in child.children" :key="grandchild.id" class="sub-step-item" :data-status="grandchild.status">
+                                <div class="sub-step-marker"></div>
+                                <div class="sub-step-title">{{ grandchild.title }}</div>
+                            </div>
+                        </div>
+                    </el-collapse-item>
+                </el-collapse>
+            </template>
+        </el-step>
+    </el-steps>
+</div>
+
+<script type="module">
+    const { createApp, ref, computed, onMounted } = Vue;
+    const { ElSteps, ElStep, ElCollapse, ElCollapseItem, ElButton } = ElementPlus;
+
+    const RootComponent = {
+        setup() {
+            const steps = ref([]);
+            const activeCollapses = ref([]); // 控制展开的折叠面板
+            let timeouts = [];
+
+            // 计算当前活动的步骤索引
+            const activeStep = computed(() => {
+                const processIndex = steps.value.findIndex(s => s.status === 'process');
+                if (processIndex !== -1) return processIndex;
+                // 如果没有进行中的，则认为所有已完成的都是激活的
+                return steps.value.filter(s => s.status === 'finish').length;
+            });
+            
+            // 转换状态值为 Element Plus 所需的值
+            const getElStatus = (status) => {
+                const map = {
+                    'finish': 'success',
+                    'process': 'process',
+                    'wait': 'wait',
+                };
+                return map[status] || 'wait';
+            };
+
+            const findStepById = (stepsArray, id) => {
+                for (const step of stepsArray) {
+                    if (step.id === id) return step;
+                    if (step.children) {
+                        const found = findStepById(step.children, id);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            };
+
+            const getStreamEvents = () => [
+                { delay: 500, action: 'add', data: { id: 1, title: '理解问题并定位研究方向', description: '分析您输入的需求...', status: 'process' } },
+                { delay: 800, action: 'update', targetId: 1, data: { status: 'finish' } },
+                { delay: 300, action: 'add', data: { id: 2, title: '首轮子查询检索中', description: '基于第一步生成的3个子查询...', status: 'process', expanded: true, children: [] } },
+                { delay: 500, action: 'add_child', parentId: 2, data: { id: 21, title: '应用维度检索', status: 'process', expanded: true, children: [] } },
+                { delay: 100, action: 'expand', id: 21 },
+                { delay: 400, action: 'add_child', parentId: 21, data: { id: 211, title: '子查询1', status: 'finish' } },
+                { delay: 400, action: 'add_child', parentId: 21, data: { id: 212, title: '子查询1', status: 'finish' } },
+                { delay: 400, action: 'add_child', parentId: 21, data: { id: 213, title: '子查询1', status: 'process' } },
+                { delay: 600, action: 'update', targetId: 21, data: { status: 'finish' } },
+                { delay: 300, action: 'add_child', parentId: 2, data: { id: 22, title: '新闻维度检索', status: 'wait', expanded: false, children: [] } },
+                { delay: 300, action: 'add_child', parentId: 2, data: { id: 23, title: '文件维度检索', status: 'wait', expanded: false, children: [] } },
+                { delay: 500, action: 'add', data: { id: 3, title: '全维度结果整合中', status: 'wait' } },
+                { delay: 500, action: 'add', data: { id: 4, title: '大模型分析结果并决策', status: 'wait' } },
+                { delay: 500, action: 'add', data: { id: 5, title: '分析结果并完成总结', status: 'wait' } },
+            ];
+
+            const startStreaming = () => {
+                timeouts.forEach(clearTimeout);
+                timeouts = [];
+                steps.value = [];
+                activeCollapses.value = [];
+
+                const streamEvents = getStreamEvents();
+                let cumulativeDelay = 0;
+
+                streamEvents.forEach(event => {
+                    cumulativeDelay += event.delay;
+                    const timerId = setTimeout(() => {
+                        let step;
+                        switch (event.action) {
+                            case 'add':
+                                steps.value.push(event.data);
+                                break;
+                            case 'update':
+                                step = findStepById(steps.value, event.targetId);
+                                if (step) Object.assign(step, event.data);
+                                break;
+                            case 'add_child':
+                                step = findStepById(steps.value, event.parentId);
+                                if (step) {
+                                    if (!step.children) step.children = [];
+                                    step.children.push(event.data);
+                                }
+                                break;
+                            case 'expand':
+                                // 动态展开一个折叠面板
+                                if (!activeCollapses.value.includes(event.id)) {
+                                    activeCollapses.value.push(event.id);
+                                }
+                                break;
+                        }
+                    }, cumulativeDelay);
+                    timeouts.push(timerId);
+                });
+            };
+            
+            onMounted(startStreaming);
+
+            return { steps, activeStep, activeCollapses, startStreaming, getElStatus };
+        }
+    };
+    
+    const app = createApp(RootComponent);
+    // 注册 Element Plus 组件
+    app.use(ElementPlus);
+    app.mount('#app');
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>CSS 扇形示例</title>
+  <style>
+    .sector {
+      /* 尺寸 */
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+
+      /* 扇形用 conic-gradient 实现 */
+      background: conic-gradient(
+        #4f46e5 120deg,     /* 扇形颜色 + 扇形角度 */
+        transparent 0deg    /* 其余透明 */
+      );
+
+      /* 设置起始角度（默认 conic-gradient 从 0deg = 正右方向开始） */
+      transform: rotate(-90deg); /* -90deg 表示从顶部开始 */
+      margin: 50px auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="sector"></div>
+</body>
+</html>

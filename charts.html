@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECharts 交互图表</title>
+    <!-- 引入 ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- 引入 Tailwind CSS 用于快速美化页面 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 使用 Inter 字体，并设置一个舒适的背景色 */
+        body {
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', 'sans-serif', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei';
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 主容器，模仿图片中的卡片样式 -->
+    <div class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 sm:p-8">
+
+        <!-- 1. 顶部的模拟信息栏 -->
+        <div class="flex flex-wrap items-center justify-between text-sm text-gray-600 mb-4">
+            <div class="flex items-center space-x-4">
+                <span>高考分数: <strong class="text-blue-600">500分</strong></span>
+                <span>同分人数: <strong class="text-blue-600">200人</strong></span>
+                <span>排位区间: <strong class="text-blue-600">48000~48500名</strong></span>
+            </div>
+            <div class="text-gray-400">
+                提示：排名来源于省考试院历年公布的一分一段表
+            </div>
+        </div>
+
+        <!-- 2. ECharts 图表容器 -->
+        <div id="main-chart" style="width: 100%; height: 400px;"></div>
+
+        <!-- 3. 历史数据卡片区域 -->
+        <div class="mt-8">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">历史同位次考生得分</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- 卡片 1 (2025年) -->
+                <div class="bg-gray-100 rounded-lg p-4">
+                    <p class="text-gray-800">
+                        <!-- ID "score-2025" 用于 JS 更新 -->
+                        <strong id="score-2025" class="text-2xl font-bold text-gray-900">370</strong>
+                        <span class="ml-1">分 (2025年)</span>
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">批次线差 52分 专科批</p>
+                </div>
+                <!-- 卡片 2 (2024年) -->
+                <div class="bg-gray-100 rounded-lg p-4">
+                    <p class="text-gray-800">
+                        <!-- ID "score-2024" 用于 JS 更新 -->
+                        <strong id="score-2024" class="text-2xl font-bold text-gray-900">370</strong>
+                        <span class="ml-1">分 (2024年)</span>
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">批次线差 52分 专科批</p>
+                </div>
+                <!-- 卡片 3 (2023年) -->
+                <div class="bg-gray-100 rounded-lg p-4">
+                    <p class="text-gray-800">
+                        <!-- ID "score-2023" 用于 JS 更新 -->
+                        <strong id="score-2023" class="text-2xl font-bold text-gray-900">370</strong>
+                        <span class="ml-1">分 (2023年)</span>
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">批次线差 52分 专科批</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // 等待 DOM 加载完毕后执行
+        document.addEventListener('DOMContentLoaded', function () {
+            // 初始化 ECharts 实例
+            var myChart = echarts.init(document.getElementById('main-chart'));
+
+            // --- 模拟数据生成 ---
+            // 1. X轴数据（分数从200到700）
+            var xAxisData = [];
+            for (var i = 200; i <= 700; i++) {
+                xAxisData.push(i.toString());
+            }
+
+            // 2. Y轴数据（人数），生成一个类似正态分布的曲线
+            var seriesData = [];
+            var peak = 400; // 峰值分数
+            var maxVal = 620; // 峰值人数
+            var spread = 100; // 分布离散程度
+            for (var i = 0; i < xAxisData.length; i++) {
+                var score = parseInt(xAxisData[i]);
+                // 使用高斯函数模拟分布
+                var val = maxVal * Math.exp(-Math.pow(score - peak, 2) / (2 * Math.pow(spread, 2)));
+                // 添加一些随机噪点
+                val = val + Math.random() * 50;
+                seriesData.push(Math.round(val));
+            }
+            // --- 模拟数据结束 ---
+
+
+            // ECharts 配置项
+            var option = {
+                // 调整图表与容器的边距
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '5%',
+                    top: '10%',
+                    containLabel: true
+                },
+                // 提示框，随 axisPointer 触发
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function (params) {
+                        var param = params[0];
+                        return '分数：' + param.name + '分<br>人数：' + param.value + '人';
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false, // 面积图X轴不留白
+                    data: xAxisData,
+                    axisTick: { // 隐藏刻度
+                        show: false
+                    },
+                    axisLine: { // X轴线样式
+                        lineStyle: {
+                            color: '#e5e7eb' // 灰色
+                        }
+                    },
+                    axisLabel: { // X轴标签
+                        color: 'red',
+                        // 修正：只保留批次线和边界的标签，确保它们不会因为自动优化而被隐藏
+                        formatter: function (value) {
+                            if (value === '200') return '科批';
+                            if (value === '400') return '科批';
+                            if (value === '700') return '697-750分';
+                            return ''; // 其他所有点位不显示标签
+                        }
+                    },
+                    // --- 交互核心：坐标轴指示器（鼠标悬停时显示，在 370分 等位置显示蓝色虚线） ---
+                    axisPointer: {
+                        type: 'line', // 线性指示器
+                        lineStyle: {
+                            color: '#3b82f6', // 蓝色
+                            type: 'dashed' // 虚线
+                        },
+                        // 指示器标签
+                        label: {
+                            show: true,
+                            formatter: '{value}分', // 格式化为 "XXX分"
+                            backgroundColor: 'transparent', // 透明背景
+                            color: '#3b82f6', // 蓝色字体
+                            fontWeight: 'bold',
+                            padding: [0, 0, 10, 0] // 向下偏移10px，使其位于轴线上
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '人数',
+                    nameTextStyle: {
+                        align: 'left',
+                        color: '#6b7280'
+                    },
+                    axisLabel: {
+                        formatter: '{value}人', // Y轴标签添加 "人" 单位
+                        color: '#6b7280'
+                    },
+                    splitLine: { // Y轴分隔线
+                        lineStyle: {
+                            type: 'dashed', // 虚线
+                            color: '#e5e7eb'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '人数',
+                        type: 'line',
+                        smooth: true, // 平滑曲线
+                        showSymbol: false, // 默认不显示数据点
+                        data: seriesData,
+                        lineStyle: {
+                            color: '#3b82f6', // 线条颜色
+                            width: 2
+                        },
+                        // 区域填充样式
+                        areaStyle: {
+                            // 渐变色
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                {
+                                    offset: 0,
+                                    color: 'rgba(59, 130, 246, 0.3)' // 顶部颜色
+                                },
+                                {
+                                    offset: 1,
+                                    color: 'rgba(59, 130, 246, 0)' // 底部透明
+                                }
+                            ])
+                        },
+                        // 高亮（鼠标悬停）时的样式
+                        emphasis: {
+                            focus: 'series', // 聚焦到系列
+                            itemStyle: {
+                                // 显示数据点
+                                color: '#3b82f6',
+                                borderColor: '#fff',
+                                borderWidth: 2
+                            }
+                        },
+                        // --- 固定批次线 (markLine)：200分, 400分, 700分 ---
+                        markLine: {
+                            silent: true, // 不参与交互
+                            symbol: 'none', // 不显示标记
+                            lineStyle: {
+                                type: 'dashed',
+                                color: '#ccc', // 浅灰色，作为固定批次线的颜色
+                                width: 1
+                            },
+                            data: [
+                                { xAxis: '200' }, // 专科批分数线
+                                { xAxis: '400' }, // 本科批分数线
+                                { xAxis: '700' }  // 最高分界线 (697-750分区域)
+                            ]
+                        }
+                    }
+                ]
+            };
+
+            // 应用配置
+            myChart.setOption(option);
+
+            // --- 交互核心：事件监听 ---
+            // 获取要更新的DOM元素
+            var score2025El = document.getElementById('score-2025');
+            var score2024El = document.getElementById('score-2024');
+            var score2023El = document.getElementById('score-2023');
+
+            // 监听 'axispointermove' 事件
+            // 当鼠标在图表上移动，指示器变化时触发
+            myChart.on('axispointermove', function (params) {
+                // params 是一个数组，包含当前指示器位置的所有系列信息
+                // 我们只需要第一个系列（params.seriesData[0]）
+                if (params.seriesData && params.seriesData.length > 0) {
+                    var currentScore = params.seriesData[0].name; // .name 就是 X 轴的数据（分数）
+
+                    // 模拟根据 currentScore 获取的历史数据
+                    var fakeScore2024 = parseInt(currentScore) - 2; // 假设2024年低2分
+                    var fakeScore2023 = parseInt(currentScore) + 1; // 假设2023年高1分
+
+                    // 更新卡片上的分数
+                    score2025El.textContent = currentScore;
+                    score2024El.textContent = fakeScore2024.toString();
+                    score2023El.textContent = fakeScore2023.toString();
+                }
+            });
+
+            // 监听窗口大小变化，使图表自适应
+            window.addEventListener('resize', function () {
+                myChart.resize();
+            });
+        });
+    </script>
+</body>
+</html>

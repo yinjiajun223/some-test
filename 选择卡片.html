@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Element Plus - 可选择卡片组</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        width: 100%;
+        padding: 30px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      h1 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 2.4rem;
+      }
+
+      .subtitle {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+
+      .cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+      }
+
+      /* 自定义卡片样式 */
+      .custom-card {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        background: white;
+        border: 2px solid transparent;
+        cursor: pointer;
+      }
+
+      /* 卡片选中状态 */
+      .custom-card.selected {
+        border-color: #409eff;
+        box-shadow: 0 8px 20px rgba(64, 158, 255, 0.3);
+        transform: translateY(-5px);
+        background: rgba(236, 245, 255, 0.3);
+      }
+
+      .card-image {
+        height: 180px;
+        overflow: hidden;
+      }
+
+      .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+      }
+
+      .custom-card:hover .card-image img {
+        transform: scale(1.05);
+      }
+
+      .card-content {
+        padding: 20px;
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 12px;
+        color: #2c3e50;
+      }
+
+      .card-description {
+        color: #7f8c8d;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        height: 72px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
+
+      .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+      }
+
+      .card-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #909399;
+        font-size: 0.85rem;
+      }
+
+      .card-meta i {
+        font-size: 1rem;
+      }
+
+      .checkbox-wrapper {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 10;
+      }
+
+      .selected-count {
+        text-align: center;
+        margin-top: 30px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        font-size: 1.1rem;
+      }
+
+      .selected-count strong {
+        color: #409eff;
+        font-size: 1.3rem;
+        margin: 0 5px;
+      }
+
+      .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .card-tags {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .card-tag {
+        background: #ecf5ff;
+        color: #409eff;
+        padding: 4px 10px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <header>
+          <h1>可选择的卡片组件</h1>
+          <p class="subtitle">使用 Element Plus 实现的卡片选择组件，点击卡片或复选框进行选择。支持多选，选中的卡片会有特殊样式标识。</p>
+        </header>
+
+        <div class="cards-container">
+          <label v-for="(card, index) in cards" :for="'card-' + card.id" :key="card.id" :class="['custom-card', { selected: selectedCards.includes(card.id) }]">
+            <div class="checkbox-wrapper">
+              <el-checkbox :id="'card-' + card.id" />
+            </div>
+
+            <div class="card-image">
+              <img :src="card.image" :alt="card.title" />
+            </div>
+
+            <div class="card-content">
+              <h3 class="card-title">{{ card.title }}</h3>
+
+              <div class="card-tags">
+                <span class="card-tag" v-for="tag in card.tags" :key="tag">{{ tag }}</span>
+              </div>
+
+              <p class="card-description">{{ card.description }}</p>
+
+              <div class="card-footer">
+                <div class="card-meta">
+                  <i class="el-icon-user"></i>
+                  <span>{{ card.author }}</span>
+                </div>
+                <div class="card-meta">
+                  <i class="el-icon-date"></i>
+                  <span>{{ card.date }}</span>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <div class="selected-count">已选中 <strong>{{ selectedCards.length }}</strong> 张卡片</div>
+
+        <div class="action-buttons">
+          <el-button type="primary" :disabled="selectedCards.length === 0">处理选中项</el-button>
+          <el-button @click="clearSelection">清除选择</el-button>
+          <el-button @click="selectAll">全选所有卡片</el-button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const { createApp, ref } = Vue;
+
+      const app = createApp({
+        setup() {
+          const selectedCards = ref([]);
+
+          const cards = ref([
+            {
+              id: 1,
+              title: "前端开发最佳实践",
+              description: "探索现代前端开发的技巧和最佳实践，包括性能优化、组件设计和代码组织策略等。",
+              tags: ["前端", "JavaScript", "Vue"],
+              author: "张明",
+              date: "2023-07-10",
+              image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
+            },
+            {
+              id: 2,
+              title: "响应式设计指南",
+              description: "掌握响应式网页设计的核心技巧，学习如何创建在各种设备上都能完美展示的网站。",
+              tags: ["CSS", "响应式", "设计"],
+              author: "李华",
+              date: "2023-07-12",
+              image: "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
+            },
+            {
+              id: 3,
+              title: "Vue 3 高级特性",
+              description: "深入了解 Vue 3 的高级特性，包括 Composition API、响应式原理和性能优化技巧。",
+              tags: ["Vue", "JavaScript", "前端框架"],
+              author: "王伟",
+              date: "2023-07-15",
+              image: "https://images.unsplash.com/photo-1641154748135-8032a61a3f80?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
+            },
+            {
+              id: 4,
+              title: "UI/UX 设计原则",
+              description: "学习创建用户友好界面的核心原则，了解用户体验设计的最佳实践和常见模式。",
+              tags: ["设计", "用户体验", "界面"],
+              author: "陈琳",
+              date: "2023-07-18",
+              image: "https://images.unsplash.com/photo-1558655146-d09347e92766?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
+            },
+            {
+              id: 5,
+              title: "Node.js 服务端开发",
+              description: "掌握使用 Node.js 构建高性能服务端应用的技巧，包括 Express、Koa 等框架的使用。",
+              tags: ["Node.js", "后端", "JavaScript"],
+              author: "赵强",
+              date: "2023-07-20",
+              image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
+            },
+            {
+              id: 6,
+              title: "移动端开发策略",
+              description: "探索现代移动端开发的各种策略，包括原生应用、混合应用和 PWA 的选择与实现。",
+              tags: ["移动端", "PWA", "混合应用"],
+              author: "孙芳",
+              date: "2023-07-22",
+              image: "https://images.unsplash.com/photo-1607252650356-f1d0b5018441?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
+            },
+          ]);
+
+          function toggleCard(cardId) {
+            const index = selectedCards.value.indexOf(cardId);
+            if (index === -1) {
+              selectedCards.value.push(cardId);
+            } else {
+              selectedCards.value.splice(index, 1);
+            }
+          }
+
+          function clearSelection() {
+            selectedCards.value = [];
+          }
+
+          function selectAll() {
+            selectedCards.value = cards.value.map((card) => card.id);
+          }
+
+          return {
+            cards,
+            selectedCards,
+            toggleCard,
+            clearSelection,
+            selectAll,
+          };
+        },
+      });
+
+      app.use(ElementPlus);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

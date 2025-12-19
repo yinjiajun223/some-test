@@ -1,0 +1,1152 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>系统 - 登录设置</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          "Source Han Sans CN",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background-color: #f4f6f9;
+        color: #333;
+      }
+
+      .container {
+        display: flex;
+        height: 100vh;
+      }
+
+      /* 左侧导航栏 */
+      .sidebar {
+        width: 96px;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 0;
+        position: relative;
+      }
+
+      .logo {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 20px;
+      }
+
+      .nav-menu {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 0;
+        cursor: pointer;
+        color: #515a62;
+        font-size: 18px;
+        font-weight: 400;
+        position: relative;
+        transition: all 0.3s;
+      }
+
+      .nav-item:hover {
+        background: rgba(59, 161, 255, 0.05);
+      }
+
+      .nav-item.active {
+        color: #3ba1ff;
+      }
+
+      .nav-item.active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 72px;
+        background: #3b82f6;
+        border-radius: 0 10px 10px 0;
+      }
+
+      .nav-item img {
+        width: 24px;
+        height: 24px;
+      }
+
+      /* 主内容区域 */
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+      }
+
+      /* 顶部栏 */
+      .header {
+        background: #ffffff;
+        padding: 20px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .brand-name {
+        font-family: "Zhi Mang Xing", cursive;
+        font-size: 40px;
+        font-weight: 400;
+        background: linear-gradient(180deg, #178dfd 0%, #1263ad 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 6.4px;
+      }
+
+      .brand-english {
+        font-family: Arial;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 2.4px;
+        background: linear-gradient(180deg, #178dfd 0%, #1263ad 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+      }
+
+      .user-name {
+        font-size: 18px;
+        font-weight: 500;
+        color: #515a62;
+      }
+
+      .logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #515a62;
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      .logout-btn img {
+        width: 16px;
+        height: 16px;
+        filter: invert(1);
+      }
+
+      /* 内容区域 */
+      .content {
+        flex: 1;
+        padding: 32px 40px;
+      }
+
+      /* 标签页 */
+      .tabs {
+        display: flex;
+        gap: 56px;
+        align-items: flex-end;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #f7f7f7;
+      }
+
+      .tab {
+        font-size: 20px;
+        font-weight: 500;
+        color: #333;
+        padding: 8px 0 16px;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s;
+      }
+
+      .tab.active {
+        font-size: 24px;
+        color: #3b82f6;
+      }
+
+      .tab.active::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #3b82f6;
+        border-radius: 10px 10px 0 0;
+      }
+
+      /* 设置面板 */
+      .settings-panel {
+        background: #ffffff;
+        border-radius: 15px;
+        padding: 40px;
+        margin-top: 24px;
+      }
+
+      .setting-section {
+        margin-bottom: 40px;
+      }
+
+      .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 20px;
+        position: relative;
+        padding-left: 15px;
+      }
+
+      .section-title::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 12px;
+        background: #3b82f6;
+        border-radius: 10px;
+      }
+
+      .section-description {
+        font-size: 16px;
+        color: #999;
+        margin-bottom: 16px;
+      }
+
+      .section-warning {
+        font-size: 16px;
+        color: #dc2626;
+        margin-bottom: 16px;
+      }
+
+      .setting-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 56px 62px;
+      }
+
+      .setting-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .setting-label {
+        font-size: 16px;
+        font-weight: 500;
+        color: #515a62;
+      }
+
+      .setting-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .status-text {
+        font-size: 14px;
+      }
+
+      .status-text.active {
+        color: #22c55e;
+      }
+
+      .status-text.inactive {
+        color: #999;
+      }
+
+      /* 开关按钮 */
+      .toggle-switch {
+        position: relative;
+        width: 40px;
+        height: 20px;
+        background: #e5e7eb;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .toggle-switch::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.3s;
+      }
+
+      .toggle-switch.active {
+        background: #22c55e;
+      }
+
+      .toggle-switch.active::after {
+        left: 22px;
+      }
+
+      /* 账户辅助登录设置 */
+      .auxiliary-section {
+        background: #f7f7f7;
+        border-radius: 10px;
+        padding: 24px;
+        margin-top: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        font-size: 16px;
+        font-weight: 500;
+        color: #999;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .form-input {
+        width: 350px;
+        height: 40px;
+        background: #eaf4fc;
+        border: 1px solid #cccccc;
+        border-radius: 5px;
+        padding: 0 12px;
+        font-size: 16px;
+        color: #333;
+      }
+
+      .form-input::placeholder {
+        color: #cccccc;
+      }
+
+      .service-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 12px;
+        background: rgba(34, 197, 94, 0.08);
+        border-radius: 12px;
+        font-size: 14px;
+        color: #22c55e;
+      }
+
+      .service-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .service-icon {
+        width: 24px;
+        height: 24px;
+      }
+
+      .service-name {
+        font-size: 18px;
+        font-weight: 500;
+        color: #999;
+      }
+
+      .lock-icon {
+        position: absolute;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 35.46px;
+        height: 296px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(220, 38, 38, 0.05);
+        border: 1px solid #dc2626;
+        border-radius: 18px 0 0 18px;
+      }
+
+      .lock-icon svg {
+        width: 24px;
+        height: 24px;
+        fill: #ffffff;
+      }
+
+      /* IP白名单和登录过期设置 */
+      .time-setting {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .time-setting-label {
+        font-size: 18px;
+        font-weight: 500;
+        color: #515a62;
+      }
+
+      .time-input {
+        width: 80px;
+        height: 32px;
+        border: 1px solid #cccccc;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 16px;
+      }
+
+      .time-hint {
+        font-size: 16px;
+        color: rgba(153, 153, 153, 0.8);
+        position: absolute;
+        margin-left: 8px;
+      }
+
+      .manage-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 24px;
+        border: 1px solid #3b82f6;
+        border-radius: 4px;
+        background: none;
+        color: #3b82f6;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .manage-btn:hover {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .highlight-text {
+        color: #3b82f6;
+        font-weight: 700;
+      }
+
+      .info-group {
+        margin-top: 16px;
+      }
+
+      /* 弹窗样式 */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        width: 520px;
+        max-width: 90%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        position: relative;
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+
+      .modal-title {
+        font-size: 18px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .modal-close {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        padding: 0;
+        color: #999;
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .modal-close:hover {
+        color: #333;
+      }
+
+      .modal-description {
+        font-size: 14px;
+        color: #999;
+        margin-bottom: 16px;
+        line-height: 1.5;
+      }
+
+      .modal-textarea {
+        width: 100%;
+        height: 200px;
+        border: 1px solid #E5E7EB;
+        border-radius: 4px;
+        padding: 12px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        margin-bottom: 20px;
+      }
+
+      .modal-textarea::placeholder {
+        color: #CCCCCC;
+      }
+
+      .modal-textarea:focus {
+        outline: none;
+        border-color: #3B82F6;
+      }
+
+      .modal-footer {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .modal-btn {
+        padding: 8px 32px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .modal-btn-cancel {
+        background: white;
+        border: 1px solid #3B82F6;
+        color: #3B82F6;
+      }
+
+      .modal-btn-cancel:hover {
+        background: #EFF6FF;
+      }
+
+      .modal-btn-confirm {
+        background: #3B82F6;
+        border: 1px solid #3B82F6;
+        color: white;
+      }
+
+      .modal-btn-confirm:hover {
+        background: #2563EB;
+      }
+
+      .info-row {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .info-label {
+        font-size: 18px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .info-text {
+        font-size: 18px;
+        font-weight: 500;
+        color: #515a62;
+      }
+
+      .info-hint {
+        font-size: 16px;
+        color: #999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- 左侧导航栏 -->
+      <div class="sidebar">
+        <div class="logo">
+          <img src="assets/images/logo-bg.svg" alt="Logo" style="width: 100%; height: 100%" />
+        </div>
+        <div class="nav-menu">
+          <div class="nav-item">
+            <img src="assets/images/icon-home.svg" alt="首页" />
+            <span>首页</span>
+          </div>
+          <div class="nav-item">
+            <img src="assets/images/icon-user.svg" alt="用户" />
+            <span>用户</span>
+          </div>
+          <div class="nav-item">
+            <img src="assets/images/icon-role.svg" alt="角色" />
+            <span>角色</span>
+          </div>
+          <div class="nav-item">
+            <img src="assets/images/icon-auth.svg" alt="认证" />
+            <span>认证</span>
+          </div>
+          <div class="nav-item">
+            <img src="assets/images/icon-log.svg" alt="日志" />
+            <span>日志</span>
+          </div>
+          <div class="nav-item active">
+            <img src="assets/images/icon-system.svg" alt="系统" style="filter: invert(47%) sepia(83%) saturate(1920%) hue-rotate(183deg) brightness(102%) contrast(99%)" />
+            <span>系统</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 主内容区域 -->
+      <div class="main-content">
+        <!-- 顶部栏 -->
+        <div class="header">
+          <div class="header-left">
+            <div class="brand">
+              <div class="brand-name">超星大学</div>
+              <div class="brand-english">CHAOXING UNIVERSITY</div>
+            </div>
+          </div>
+          <div class="user-info">
+            <img class="user-avatar" src="assets/images/avatar.svg" alt="用户头像" />
+            <span class="user-name">周亚敏</span>
+            <button class="logout-btn">
+              <img src="assets/images/icon-logout.svg" alt="退出" />
+              <span>退出</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content">
+          <!-- 标签页 -->
+          <div class="tabs">
+            <div class="tab">系统设置</div>
+            <div class="tab">密码设置</div>
+            <div class="tab">密保设置</div>
+            <div class="tab active">登录设置</div>
+            <div class="tab">关于</div>
+          </div>
+
+          <!-- 设置面板 -->
+          <div class="settings-panel">
+            <!-- 激活设置 -->
+            <div class="setting-section">
+              <div class="section-title">激活设置</div>
+              <div class="section-description">
+                （备注：使用手机验证码进行激活和登录时，需要提前对接短信发送服务和授权相关服务器IP，否则无法成功使用，启用前请核实短信对接服务是否对接成功）
+              </div>
+              <div class="section-warning">注意：至少需要一个激活方式启用成功</div>
+              <div class="setting-items">
+                <div class="setting-item">
+                  <span class="setting-label">密保验证激活</span>
+                  <div class="setting-status">
+                    <span class="status-text active">已开启</span>
+                    <div class="toggle-switch active"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">手机验证激活</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 登录设置 -->
+            <div class="setting-section">
+              <div class="section-title">登录设置</div>
+              <div class="section-description">
+                （备注：使用微信和 QQ 扫码进行登录时，需要提前按照微信和QQ相关开发文档进行对接，否则将无法使用微信和 QQ 扫码登录，启用前请核实是否对接成功）
+              </div>
+              <div class="setting-items">
+                <div class="setting-item">
+                  <span class="setting-label">手机验证码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text active">已开启</span>
+                    <div class="toggle-switch active"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">微信扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">QQ扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">钉钉扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">企微扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 双因子登录设置 -->
+            <div class="setting-section">
+              <div class="section-title">双因子登录设置</div>
+              <div class="section-description">
+                （备注：一种安全验证机制,要求用户在登录时除了常规的用户名和密码外,还需要提供第二个身份验证因素,开启双因子登录前需要确保双因子验证因素可以正常使用)
+              </div>
+              <div class="setting-items">
+                <div class="setting-item">
+                  <span class="setting-label">手机验证码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text active">已开启</span>
+                    <div class="toggle-switch active"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">微信扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">QQ扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">钉钉扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">企微扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 双因子登录触发条件 -->
+            <div class="setting-section">
+              <div class="section-title">双因子 登录触发条件</div>
+              <div class="setting-items">
+                <div class="setting-item">
+                  <span class="setting-label">首次登录</span>
+                  <div class="setting-status">
+                    <span class="status-text active">已开启</span>
+                    <div class="toggle-switch active"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">每次登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">使用设备变更</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">IP 地址异常</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- IP地址白名单 -->
+            <div class="setting-section">
+              <div class="section-title">IP 地址白名单</div>
+              <div class="time-setting">
+                <span class="setting-label">指定</span>
+                <input type="text" class="time-input" placeholder="0 - 365" />
+                <span class="setting-label">天开启</span>
+                <div class="setting-status">
+                  <span class="status-text inactive">未开启</span>
+                  <div class="toggle-switch"></div>
+                </div>
+              </div>
+              <div style="margin-top: 20px">
+                <button class="manage-btn">点击管理</button>
+              </div>
+            </div>
+
+            <!-- 登录页面设置 -->
+            <div class="setting-section">
+              <div class="section-title">登录页面设置</div>
+              <div class="setting-items">
+                <div class="setting-item">
+                  <span class="setting-label">密码输入可见</span>
+                  <div class="setting-status">
+                    <span class="status-text active">已开启</span>
+                    <div class="toggle-switch active"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 管理员登录时双因子触发设置 -->
+            <div class="setting-section">
+              <div class="section-title">管理员登录时双因子触发设置</div>
+              <div class="setting-items">
+                <div class="setting-item">
+                  <span class="setting-label">仅登录认证管理后台</span>
+                  <div class="setting-status">
+                    <span class="status-text active">已开启</span>
+                    <div class="toggle-switch active"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">不单独触发</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">每次登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 登录过期设置 -->
+            <div class="setting-section">
+              <div class="section-title">登录过期设置</div>
+              <div class="section-description">（备注：需要完成管理账户登录必要社会在才能使用关联账户进行登录）</div>
+              <div class="info-group">
+                <div class="info-row">
+                  <span class="info-label">Web端</span>
+                  <span class="info-hint">如需变动，请联系管理员</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-text">在</span>
+                  <span class="highlight-text">2</span>
+                  <span class="info-text">小时，未检测到任何页面请求或操作，将登出账号。</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 账户辅助登录设置 -->
+            <div class="setting-section">
+              <div class="section-title">账户辅助登录设置</div>
+              <div class="section-description">（备注：需要完成管理账户登录必要社会在才能使用关联账户进行登录）</div>
+              <div class="auxiliary-section" style="position: relative">
+                <!-- 微信登录 -->
+                <div class="form-group">
+                  <div class="service-title">
+                    <svg class="service-icon" viewBox="0 0 24 24" fill="#515A62">
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                    <span class="service-name">微信登录</span>
+                    <span class="service-status">服务正常</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                  <div style="display: flex; gap: 20px">
+                    <div>
+                      <label class="form-label">请填写微信 AppID</label>
+                      <input type="text" class="form-input" placeholder="请输入微信 AppID" />
+                    </div>
+                    <div>
+                      <label class="form-label">请填写微信 AppSecret</label>
+                      <input type="text" class="form-input" style="width: 280px" placeholder="请输入微信 AppSecret" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- QQ登录 -->
+                <div class="form-group">
+                  <div class="service-title">
+                    <svg class="service-icon" viewBox="0 0 24 24" fill="#515A62">
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                    <span class="service-name">QQ登录</span>
+                    <span class="service-status">服务正常</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                  <div style="display: flex; gap: 20px">
+                    <div>
+                      <label class="form-label">请填写QQ AppID</label>
+                      <input type="text" class="form-input" placeholder="请输入微信 AppID" />
+                    </div>
+                    <div>
+                      <label class="form-label">请填写QQ AppSecret</label>
+                      <input type="text" class="form-input" style="width: 280px" placeholder="请输入微信 AppSecret" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 钉钉登录 -->
+                <div class="form-group">
+                  <div class="service-title">
+                    <svg class="service-icon" viewBox="0 0 24 24" fill="#515A62">
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                    <span class="service-name">钉钉登录</span>
+                    <span class="service-status">服务正常</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                  <div style="display: flex; gap: 20px">
+                    <div>
+                      <label class="form-label">请填写钉钉 AppID</label>
+                      <input type="text" class="form-input" placeholder="请输入微信 AppID" />
+                    </div>
+                    <div>
+                      <label class="form-label">请填写钉钉 AppSecret</label>
+                      <input type="text" class="form-input" style="width: 280px" placeholder="请输入微信 AppSecret" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 企业微信登录 -->
+                <div class="form-group">
+                  <div class="service-title">
+                    <svg class="service-icon" viewBox="0 0 24 24" fill="#515A62">
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                    <span class="service-name">企业微信登录</span>
+                    <span class="service-status">服务正常</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+
+                <!-- 锁定图标 -->
+                <div class="lock-icon">
+                  <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path
+                      d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm-3 5c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9V7zm3 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
+                      fill="#FFFFFF" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- 默认扫码登录设置 -->
+            <div class="setting-section">
+              <div class="section-title">默认扫码登录设置</div>
+              <div class="section-description">
+                （备注：使用微信、QQ等第三方扫码登录时，需要提前按照相关开发文档进行对接，否则将无法使用第三方扫码登录，启用前请核实是否对接成功）
+              </div>
+              <div class="setting-items">
+                <div class="setting-item">
+                  <span class="setting-label">学习通扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text active">已开启</span>
+                    <div class="toggle-switch active"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">微信扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">QQ扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">钉钉扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <span class="setting-label">企微扫码登录</span>
+                  <div class="setting-status">
+                    <span class="status-text inactive">未开启</span>
+                    <div class="toggle-switch"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IP白名单管理弹窗 -->
+    <div class="modal-overlay" id="ipWhitelistModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">管理 IP 白名单</h3>
+          <button class="modal-close" onclick="closeIPModal()">&times;</button>
+        </div>
+        <div class="modal-description">
+          在白名单内访问的 IP 地址，将不会触发 IP 地址异常引发的双因子登录，请务必配置
+        </div>
+        <textarea 
+          class="modal-textarea" 
+          id="ipWhitelistTextarea"
+          placeholder="如添有多个 IP，请使用回车或逗号分隔"></textarea>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-cancel" onclick="closeIPModal()">取消</button>
+          <button class="modal-btn modal-btn-confirm" onclick="saveIPWhitelist()">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 开关切换功能
+      document.querySelectorAll(".toggle-switch").forEach((toggle) => {
+        toggle.addEventListener("click", function () {
+          this.classList.toggle("active");
+          const statusText = this.closest(".setting-status").querySelector(".status-text");
+          if (this.classList.contains("active")) {
+            statusText.textContent = "已开启";
+            statusText.classList.remove("inactive");
+            statusText.classList.add("active");
+          } else {
+            statusText.textContent = "未开启";
+            statusText.classList.remove("active");
+            statusText.classList.add("inactive");
+          }
+        });
+      });
+
+      // 标签页切换
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      // 导航菜单切换
+      document.querySelectorAll(".nav-item").forEach((item) => {
+        item.addEventListener("click", function () {
+          document.querySelectorAll(".nav-item").forEach((i) => i.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      // IP白名单弹窗功能
+      function openIPModal() {
+        document.getElementById('ipWhitelistModal').classList.add('active');
+      }
+
+      function closeIPModal() {
+        document.getElementById('ipWhitelistModal').classList.remove('active');
+      }
+
+      function saveIPWhitelist() {
+        const ipList = document.getElementById('ipWhitelistTextarea').value;
+        if (ipList.trim()) {
+          alert('IP 白名单已保存:\n' + ipList);
+          closeIPModal();
+        } else {
+          alert('请输入 IP 地址');
+        }
+      }
+
+      // 点击弹窗外部关闭
+      document.getElementById('ipWhitelistModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeIPModal();
+        }
+      });
+
+      // 为"点击管理"按钮添加点击事件
+      document.addEventListener('DOMContentLoaded', function() {
+        const manageBtn = document.querySelector('.manage-btn');
+        if (manageBtn) {
+          manageBtn.addEventListener('click', openIPModal);
+        }
+      });
+    </script>
+  </body>
+</html>
