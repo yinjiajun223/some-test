@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en" style="font-size: 48px" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" type="text/css" th:href="@{/tjcjdx/css/messageCenter.css?t=20251230}" />
+  </head>
+
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <button class="back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+      </button>
+      待办中心
+    </header>
+
+    <!-- Search & Filter -->
+    <div class="search-container">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24">
+          <path
+            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        </svg>
+        <input type="text" class="search-input" placeholder="搜索" />
+      </div>
+      <div class="filter-btn" id="filterBtn">
+        <svg viewBox="0 0 24 24">
+          <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="filter-popover" id="filterPopover">
+      <div class="popover-arrow"></div>
+      <div class="filter-section-title">数据来源</div>
+      <div class="filter-tags">
+        <!--<div class="filter-tag active">全部</div>-->
+        <div class="filter-tag active">云端审批</div>
+        <div class="filter-tag">本地审批</div>
+        <div class="filter-tag">第三方系统</div>
+      </div>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="status-tabs">
+      <div class="status-tab active" data-status="待我处理">待我处理</div>
+      <div class="status-tab" data-status="我已处理">我已处理</div>
+      <div class="status-tab" data-status="抄送我的">抄送我的</div>
+    </div>
+
+    <div class="todo-list" id="todoList"></div>
+
+    <script th:src="@{/tjcjdx/js/jquery-3.5.1.min.js}"></script>
+    <script th:src="@{/tjcjdx/js/swiper.min.js}"></script>
+    <script th:src="@{/js/CXJSBridge.js}"></script>
+    <script th:src="@{/js/utils.js?t=2023092701}"></script>
+
+    <script>
+      // API 配置
+      const API_CONFIG = {
+        //baseUrl: 'https://portal.tjufe.edu.cn:8081', // 替换为实际的 API 基础 URL
+        baseUrl: "http://localhost:9093", // 替换为实际的 API 基础 URL
+        endpoints: {
+          getTodoList: "/tjcjdx/getMessageData",
+        },
+      };
+
+      /**
+       * 获取待办列表数据
+       * 直接调用真实后端 API
+       */
+      async function fetchTodoList(filters = {}) {
+        // 将中文状态转换为数字
+        const numericFilters = {
+          ...filters,
+          page: convertStatusToNumber(filters.page),
+          pageSize: convertStatusToNumber(filters.pageSize),
+          status: convertStatusToNumber(filters.status),
+          source: convertSourceToNumber(filters.source),
+        };
+
+        try {
+          const fullUrl = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.getTodoList}`;
+
+          const response = await fetch(fullUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(numericFilters),
+          });
+
+          const res = await response.json();
+
+          if (res.result === 1) {
+            // 修复 hasMore 逻辑：如果返回的数据量等于页面大小，可能还有更多数据
+            // 实际上应该根据后端返回的总数来判断
+            const total = res.total !== undefined && res.total !== null ? res.total : 0;
+            // 应该修改为
+            const hasMore = filters.page * filters.pageSize < total;
+
+            console.log("hasMore:", hasMore);
+
+            return {
+              list: res.data || [],
+              hasMore: hasMore,
+            };
+          } else {
+            console.error("API 错误:", res.msg);
+            return { list: [], hasMore: false };
+          }
+        } catch (error) {
+          console.error("获取待办列表失败:", error);
+          const listContainer = document.getElementById("todoList");
+          listContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #ff6b6b; font-size: 14px;">数据加载失败，请稍后重试</div>';
+          return { list: [], hasMore: false };
+        }
+      }
+
+      /**
+       * 将状态中文转换为数字
+       */
+      function convertStatusToNumber(status) {
+        switch (status) {
+          case "待我处理":
+            return 1;
+          case "我已处理":
+            return 2;
+          case "抄送我的":
+            return 3;
+          default:
+            return status; // 如果已经是数字则直接返回
+        }
+      }
+
+      /**
+       * 将数据来源转换为数字
+       */
+      function convertSourceToNumber(source) {
+        switch (source) {
+          case "云端审批":
+            return 1;
+          case "本地审批":
+            return 2;
+          case "第三方系统":
+            return 3;
+          default:
+            return source; // 如果已经是数字则直接返回
+        }
+      }
+
+      /**
+       * 渲染加载动画
+       */
+      function renderLoading() {
+        const listContainer = document.getElementById("todoList");
+        listContainer.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                </div>
+            `;
+      }
+
+      /**
+       * 渲染列表项
+       */
+      function renderList(items, append = false) {
+        const listContainer = document.getElementById("todoList");
+
+        if (!append) {
+          listContainer.innerHTML = ""; // 清空现有内容
+        }
+
+        if (items.length === 0) {
+          if (!append) {
+            listContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #999; font-size: 14px;">暂无数据</div>';
+          }
+          return;
+        }
+
+        // 如果之前显示的是"暂无数据"，先清除它
+        if (listContainer.innerHTML.includes("暂无数据")) {
+          listContainer.innerHTML = "";
+        }
+
+        items.forEach((item) => {
+          const itemEl = document.createElement("div");
+          itemEl.className = "todo-item";
+          itemEl.setAttribute("data-id", item.id);
+          itemEl.setAttribute("data-app-id", item.id || "");
+          itemEl.setAttribute("data-app-title", item.title || "");
+          itemEl.setAttribute("data-app-url", item.url || "");
+
+          // Handle newlines in system name
+          const systemNameHtml = item.systemName.replace(/\n/g, "<br>");
+
+          itemEl.innerHTML = `
+        <div class="system-icon ${item.systemColor}">
+            ${systemNameHtml}
+        </div>
+        <div class="item-content">
+            <div class="item-header">
+                <div class="item-title">${item.title}</div>
+                <div class="item-status status-${item.statusType}">${item.status}</div>
+            </div>
+            <div class="item-meta">
+                <div class="meta-group">
+                    <svg class="meta-icon" viewBox="0 0 24 24">
+                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                    </svg>
+                    <span>${item.date}</span>
+                </div>
+                <div class="meta-group">
+                    <svg class="meta-icon" viewBox="0 0 24 24">
+                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                    </svg>
+                    <span>${item.duration}</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+          // 添加点击事件监听器到整个项目元素
+          itemEl.addEventListener("click", function () {
+            const appId = this.getAttribute("data-app-id");
+            const title = this.getAttribute("data-app-title");
+            const url = this.getAttribute("data-app-url");
+            openWithHistory(appId, title, url);
+          });
+
+          listContainer.appendChild(itemEl);
+        });
+      }
+
+      // 初始化
+      document.addEventListener("DOMContentLoaded", async () => {
+        // 返回按钮逻辑
+        document.querySelector(".back-btn").addEventListener("click", () => {
+          history.back();
+          console.log("点击返回按钮");
+        });
+
+        // 分页状态
+        let currentPage = 1;
+        const pageSize = 10;
+        let hasMore = true;
+        let isLoading = false;
+        let useScrollLoad = false; // 是否使用滚动加载
+
+        // 当前筛选状态
+        let currentFilters = {
+          keyword: "",
+          source: "云端审批",
+          status: "待我处理",
+          page: currentPage,
+          pageSize: pageSize,
+        };
+
+        // 隐藏页面loading
+        const hidePageLoading = () => {
+          const overlay = document.getElementById("pageLoadingOverlay");
+          if (overlay) {
+            overlay.style.display = "none";
+          }
+        };
+
+        // 检测是否有滚动条
+        const checkScrollable = () => {
+          const listContainer = document.getElementById("todoList");
+          return listContainer.scrollHeight > listContainer.clientHeight;
+        };
+
+        // 渲染底部UI
+        const renderBottomUI = () => {
+          const listContainer = document.getElementById("todoList");
+
+          // 移除旧的底部UI
+          const oldUI = listContainer.querySelector(".load-more-container, .bottom-loading, .no-more-text");
+          if (oldUI) oldUI.remove();
+
+          // 如果列表为空或显示了"暂无数据"，则不显示任何底部UI
+          if (listContainer.innerHTML.includes("暂无数据")) {
+            return;
+          }
+
+          if (isLoading) {
+            // 加载中
+            const loadingDiv = document.createElement("div");
+            loadingDiv.className = "bottom-loading";
+            loadingDiv.innerHTML = '<div class="spinner"></div><span>加载中...</span>';
+            listContainer.appendChild(loadingDiv);
+          } else if (!hasMore) {
+            // 没有更多了
+            const noMoreDiv = document.createElement("div");
+            noMoreDiv.className = "no-more-text";
+            noMoreDiv.textContent = "没有更多了";
+            listContainer.appendChild(noMoreDiv);
+          } else if (!useScrollLoad) {
+            // 显示加载更多按钮
+            const btnContainer = document.createElement("div");
+            btnContainer.className = "load-more-container";
+            btnContainer.innerHTML = '<button class="load-more-btn">加载更多</button>';
+            listContainer.appendChild(btnContainer);
+
+            // 绑定点击事件
+            btnContainer.querySelector(".load-more-btn").addEventListener("click", loadMore);
+          }
+        };
+
+        // 加载更多数据
+        const loadMore = async () => {
+          if (isLoading || !hasMore) return;
+
+          isLoading = true;
+          currentPage++;
+          currentFilters.page = currentPage;
+          currentFilters.pageSize = pageSize;
+
+          renderBottomUI();
+
+          const result = await fetchTodoList(currentFilters);
+          hasMore = result.hasMore;
+          renderList(result.list, true); // 追加模式
+
+          isLoading = false;
+
+          // 重新检测并更新UI
+          useScrollLoad = checkScrollable();
+          renderBottomUI();
+        };
+
+        // 滚动加载
+        const handleScroll = () => {
+          if (!useScrollLoad || isLoading || !hasMore) return;
+
+          const listContainer = document.getElementById("todoList");
+          const scrollTop = listContainer.scrollTop;
+          const scrollHeight = listContainer.scrollHeight;
+          const clientHeight = listContainer.clientHeight;
+
+          // 距离底部50px时触发加载
+          if (scrollTop + clientHeight >= scrollHeight - 50) {
+            loadMore();
+          }
+        };
+
+        // 重置分页状态
+        const resetPagination = () => {
+          currentPage = 1;
+          hasMore = true;
+          currentFilters.page = 1;
+
+          // 清理底部UI元素
+          const listContainer = document.getElementById("todoList");
+          const oldUI = listContainer.querySelector(".load-more-container, .bottom-loading, .no-more-text");
+          if (oldUI) oldUI.remove();
+        };
+
+        // 初始获取数据
+        const result = await fetchTodoList(currentFilters);
+        hasMore = result.hasMore;
+        renderList(result.list);
+        hidePageLoading();
+
+        // 检测是否需要滚动加载
+        useScrollLoad = checkScrollable();
+        renderBottomUI();
+
+        // 监听滚动事件
+        const listContainer = document.getElementById("todoList");
+        listContainer.addEventListener("scroll", handleScroll);
+
+        // 状态选项卡交互
+        const statusTabs = document.querySelectorAll(".status-tab");
+        statusTabs.forEach((tab) => {
+          tab.addEventListener("click", async () => {
+            // 更新 UI 状态
+            statusTabs.forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+
+            // 重置分页
+            resetPagination();
+
+            // 更新筛选条件并重新获取数据
+            currentFilters.status = tab.dataset.status;
+            console.log("选择状态:", tab.innerText);
+
+            renderLoading();
+            const result = await fetchTodoList(currentFilters);
+            hasMore = result.hasMore;
+            renderList(result.list);
+
+            // 重新检测滚动条
+            useScrollLoad = checkScrollable();
+            renderBottomUI();
+          });
+        });
+
+        // 筛选弹窗切换逻辑
+        const filterBtn = document.getElementById("filterBtn");
+        const filterPopover = document.getElementById("filterPopover");
+
+        filterBtn.addEventListener("click", (e) => {
+          e.stopPropagation(); // 防止立即关闭
+          filterPopover.classList.toggle("show");
+        });
+
+        // 点击外部关闭弹窗
+        document.addEventListener("click", (e) => {
+          if (!filterPopover.contains(e.target) && !filterBtn.contains(e.target)) {
+            filterPopover.classList.remove("show");
+          }
+        });
+
+        // 筛选标签交互
+        const filterTags = document.querySelectorAll(".filter-tag");
+        filterTags.forEach((tag) => {
+          tag.addEventListener("click", async () => {
+            // 更新 UI 状态
+            filterTags.forEach((t) => t.classList.remove("active"));
+            tag.classList.add("active");
+
+            // 更新筛选条件并重新获取数据
+            const selectedSource = tag.innerText === "全部" ? "" : tag.innerText;
+            currentFilters.source = selectedSource;
+            console.log("选择筛选来源:", tag.innerText);
+
+            // 重置分页参数
+            currentPage = 1;
+            currentFilters.page = 1;
+            currentFilters.pageSize = pageSize;
+            hasMore = true;
+            isLoading = false; // 重置加载状态
+
+            renderLoading();
+            const newData = await fetchTodoList(currentFilters);
+            renderList(newData.list, false);
+            hasMore = newData.hasMore;
+
+            // 重新检测滚动条并更新UI
+            useScrollLoad = checkScrollable();
+            renderBottomUI();
+
+            // 确保滚动事件仍然正常工作
+            listContainer.removeEventListener("scroll", handleScroll); // 先移除
+            listContainer.addEventListener("scroll", handleScroll); // 重新绑定
+
+            // 可选：选择后自动关闭弹窗
+            filterPopover.classList.remove("show");
+          });
+        });
+
+        // 搜索功能交互
+        const searchInput = document.querySelector(".search-input");
+        let searchTimeout;
+
+        searchInput.addEventListener("input", (e) => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(async () => {
+            currentFilters.keyword = e.target.value.trim();
+            console.log("搜索关键词:", currentFilters.keyword);
+
+            // 重置分页参数
+            currentPage = 1;
+            currentFilters.page = 1;
+            currentFilters.pageSize = pageSize;
+            hasMore = true;
+
+            renderLoading();
+            const newData = await fetchTodoList(currentFilters);
+            renderList(newData.list, false);
+            hasMore = newData.hasMore;
+          }, 300);
+        });
+      });
+
+      function openWithHistory(appId, name, url) {
+        openUrl("CLIENT_OPEN_URL", name, url);
+      }
+    </script>
+  </body>
+</html>

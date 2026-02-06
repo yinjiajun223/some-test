@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>待办中心</title>
+    <style>
+        :root {
+            --primary-color: #7B40F2;
+            --bg-color: #F5F5F7;
+            --text-main: #333333;
+            --text-sub: #999999;
+            --border-color: #EEEEEE;
+            --white: #FFFFFF;
+            --status-orange: #FF9800;
+            --status-green: #4CAF50;
+            --status-red: #F44336;
+            --status-gray: #9E9E9E;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 18px;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-btn svg {
+            stroke: var(--white);
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Search Bar */
+        .search-container {
+            background-color: var(--white);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 101;
+            flex-shrink: 0;
+            box-shadow: 0 1px 0 var(--border-color);
+        }
+
+        .search-box {
+            flex: 1;
+            background-color: #F5F5F5;
+            border-radius: 4px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .search-icon {
+            width: 16px;
+            height: 16px;
+            fill: #999;
+            margin-right: 8px;
+        }
+
+        .search-input {
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 14px;
+            color: var(--text-main);
+            width: 100%;
+        }
+
+        .search-input::placeholder {
+            color: #999;
+        }
+
+        .filter-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .filter-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--primary-color);
+        }
+
+        /* Status Tabs */
+        .status-tabs {
+            background-color: var(--white);
+            display: flex;
+            padding: 0;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .status-tab {
+            flex: 1;
+            padding: 14px 0;
+            text-align: center;
+            font-size: 15px;
+            color: var(--text-sub);
+            cursor: pointer;
+            position: relative;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .status-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        /* Filter Popover */
+        .filter-popover {
+            position: absolute;
+            top: 100px; /* Adjust based on header + search height */
+            left: 0;
+            width: 100%;
+            background-color: var(--white);
+            z-index: 100;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: none; /* Hidden by default */
+        }
+
+        .filter-popover.show {
+            display: block;
+        }
+
+        .popover-arrow {
+            position: absolute;
+            top: -6px;
+            right: 18px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--white);
+            transform: rotate(45deg);
+            box-shadow: -2px -2px 5px rgba(0,0,0,0.03);
+        }
+
+        .filter-section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tag {
+            padding: 6px 12px;
+            border: 1px solid #DDD;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #666;
+            background: var(--white);
+            cursor: pointer;
+        }
+
+        .filter-tag.active {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+
+        /* List */
+        .todo-list {
+            padding-top: 10px; /* Space after filter */
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .todo-item {
+            background-color: var(--white);
+            padding: 15px;
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .system-icon {
+            width: 44px;
+            height: 44px;
+            background-color: #8E5BEB; /* Slightly lighter purple for icons */
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--white);
+            font-size: 12px;
+            line-height: 1.2;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .system-icon.blue { background-color: #6A5ACD; }
+        .system-icon.purple { background-color: #8E5BEB; }
+
+        .item-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .item-title {
+            font-size: 16px;
+            color: var(--text-main);
+            font-weight: 500;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .item-status {
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .status-pending { color: var(--status-orange); }
+        .status-passed { color: var(--status-green); }
+        .status-rejected { color: var(--status-red); }
+        .status-revoked { color: var(--status-gray); }
+
+        .item-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .meta-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .meta-icon {
+            width: 14px;
+            height: 14px;
+            fill: #999;
+        }
+
+        /* Utility */
+        .hidden { display: none; }
+
+        /* Page Loading Overlay */
+        .page-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            gap: 15px;
+        }
+
+        .page-loading-overlay .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(123, 64, 242, 0.1);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .page-loading-overlay .loading-text {
+            color: var(--text-sub);
+            font-size: 14px;
+        }
+
+        /* Loading Animation */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 0;
+            width: 100%;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(123, 64, 242, 0.1);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Bottom Load More */
+        .load-more-container {
+            padding: 20px 15px;
+            text-align: center;
+        }
+
+        .load-more-btn {
+            background-color: var(--white);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            padding: 10px 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .load-more-btn:active {
+            background-color: rgba(123, 64, 242, 0.1);
+        }
+
+        .no-more-text {
+            color: var(--text-sub);
+            font-size: 13px;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        .bottom-loading {
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-sub);
+            font-size: 13px;
+        }
+
+        .bottom-loading .spinner {
+            width: 16px;
+            height: 16px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Page Loading Overlay -->
+    <div class="page-loading-overlay" id="pageLoadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">加载中...</div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <button class="back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        待办中心
+    </header>
+
+    <!-- Search & Filter -->
+    <div class="search-container">
+        <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <input type="text" class="search-input" placeholder="搜索">
+        </div>
+        <div class="filter-btn" id="filterBtn">
+            <svg viewBox="0 0 24 24">
+                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+            </svg>
+        </div>
+    </div>
+
+    <div class="filter-popover" id="filterPopover">
+        <div class="popover-arrow"></div>
+        <div class="filter-section-title">数据来源</div>
+        <div class="filter-tags">
+            <div class="filter-tag active">全部</div>
+            <div class="filter-tag">教务系统</div>
+            <div class="filter-tag">云平台填报平台</div>
+        </div>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="status-tabs">
+        <div class="status-tab active" data-status="待我处理">待我处理</div>
+        <div class="status-tab" data-status="我已处理">我已处理</div>
+        <div class="status-tab" data-status="抄送我的">抄送我的</div>
+    </div>
+
+    <div class="todo-list" id="todoList">
+    </div>
+
+    <script>
+        const mockData = [
+            {
+                id: 1,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "周琦的会议室预约审批",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理", // 待办类别：待我处理、我已处理、抄送我的
+                date: "2025/03/24 10:47",
+                duration: "0天1时5分35秒"
+            },
+            {
+                id: 2,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "0313:自定义的标题",
+                status: "已通过",
+                statusType: "passed",
+                category: "我已处理",
+                date: "2025/03/24 10:47",
+                duration: "0天1时5分35秒"
+            },
+            {
+                id: 3,
+                systemName: "云填报平台",
+                systemColor: "purple",
+                title: "0313:自定义的标题",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/24 10:47",
+                duration: "0天1时5分35秒"
+            },
+            {
+                id: 4,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "测试测试测试",
+                status: "已拒绝",
+                statusType: "rejected",
+                category: "我已处理",
+                date: "2025/03/24 10:47",
+                duration: "0天1时5分35秒"
+            },
+            {
+                id: 5,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "测试测试测试测试测试测试测试测试测试测试测试测试测试...",
+                status: "已撤销",
+                statusType: "revoked",
+                category: "我已处理",
+                date: "2025/03/24 10:47",
+                duration: "0天1时5分35秒"
+            },
+            {
+                id: 6,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "测试测试测试",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/24 10:47",
+                duration: "0天1时5分35秒"
+            },
+            {
+                id: 7,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "李婷的办公用品申请",
+                status: "待处理",
+                statusType: "pending",
+                category: "抄送我的",
+                date: "2025/03/24 09:30",
+                duration: "0天2时35分12秒"
+            },
+            {
+                id: 8,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "年度报表填报通知",
+                status: "进行中",
+                statusType: "pending",
+                category: "抄送我的",
+                date: "2025/03/23 16:20",
+                duration: "1天18时25分40秒"
+            },
+            // 添加更多数据用于分页测试
+            {
+                id: 9,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "课程调整通知审批",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/22 14:15",
+                duration: "2天20时30分18秒"
+            },
+            {
+                id: 10,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "学生请假申请",
+                status: "已通过",
+                statusType: "passed",
+                category: "我已处理",
+                date: "2025/03/21 11:30",
+                duration: "3天23时15分25秒"
+            },
+            {
+                id: 11,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "教学质量评估填报",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/20 09:45",
+                duration: "4天1时0分12秒"
+            },
+            {
+                id: 12,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "实验室使用申请审批",
+                status: "已拒绝",
+                statusType: "rejected",
+                category: "我已处理",
+                date: "2025/03/19 16:20",
+                duration: "5天18时25分40秒"
+            },
+            {
+                id: 13,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "学生社团活动申请审批",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/18 10:30",
+                duration: "6天2时15分22秒"
+            },
+            {
+                id: 14,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "科研项目进展填报",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/17 14:20",
+                duration: "6天21时25分15秒"
+            },
+            {
+                id: 15,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "期末考试安排确认",
+                status: "已通过",
+                statusType: "passed",
+                category: "我已处理",
+                date: "2025/03/16 09:15",
+                duration: "8天2时30分45秒"
+            },
+            {
+                id: 16,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "奖学金评定材料审核",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/15 16:45",
+                duration: "8天19时0分20秒"
+            },
+            {
+                id: 17,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "年度预算申报",
+                status: "待处理",
+                statusType: "pending",
+                category: "抄送我的",
+                date: "2025/03/14 11:20",
+                duration: "10天0时25分18秒"
+            },
+            {
+                id: 18,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "教学质量评估问卷",
+                status: "已通过",
+                statusType: "passed",
+                category: "我已处理",
+                date: "2025/03/13 15:30",
+                duration: "10天20时15分30秒"
+            },
+            {
+                id: 19,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "困难补助申请审批",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/12 10:00",
+                duration: "12天1时45分50秒"
+            },
+            {
+                id: 20,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "设备采购计划填报",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/11 13:45",
+                duration: "12天22时0分35秒"
+            },
+            {
+                id: 21,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "毕业设计选题审核",
+                status: "已拒绝",
+                statusType: "rejected",
+                category: "我已处理",
+                date: "2025/03/10 09:30",
+                duration: "14天2时15分25秒"
+            },
+            {
+                id: 22,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "勤工俭学岗位申请",
+                status: "待处理",
+                statusType: "pending",
+                category: "抄送我的",
+                date: "2025/03/09 14:20",
+                duration: "15天21时25分40秒"
+            },
+            {
+                id: 23,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "实验室安全检查记录",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/08 10:15",
+                duration: "17天1时30分45秒"
+            },
+            {
+                id: 24,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "课程调换申请审批",
+                status: "已通过",
+                statusType: "passed",
+                category: "我已处理",
+                date: "2025/03/07 16:00",
+                duration: "17天19时45分20秒"
+            },
+            {
+                id: 25,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "转专业申请材料审核",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/06 11:30",
+                duration: "19天0时15分30秒"
+            },
+            {
+                id: 26,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "师资队伍建设规划",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/05 09:45",
+                duration: "20天2时0分15秒"
+            },
+            {
+                id: 27,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "补考安排确认通知",
+                status: "已撤销",
+                statusType: "revoked",
+                category: "我已处理",
+                date: "2025/03/04 15:20",
+                duration: "20天20时25分40秒"
+            },
+            {
+                id: 28,
+                systemName: "学工\n系统",
+                systemColor: "blue",
+                title: "学生宿舍调整申请",
+                status: "待处理",
+                statusType: "pending",
+                category: "抄送我的",
+                date: "2025/03/03 10:10",
+                duration: "22天1时35分50秒"
+            },
+            {
+                id: 29,
+                systemName: "云填报\n平台",
+                systemColor: "purple",
+                title: "教学成果奖申报材料",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/02 13:30",
+                duration: "22天22时15分30秒"
+            },
+            {
+                id: 30,
+                systemName: "教务\n系统",
+                systemColor: "purple",
+                title: "新学期教学计划审核",
+                status: "待处理",
+                statusType: "pending",
+                category: "待我处理",
+                date: "2025/03/01 09:00",
+                duration: "24天2时45分50秒"
+            }
+        ];
+
+        // API 配置
+        const API_CONFIG = {
+            baseUrl: 'https://api.example.com', // 替换为实际的 API 基础 URL
+            endpoints: {
+                getTodoList: '/api/todo/list',
+                getFilters: '/api/todo/filters'
+            }
+        };
+
+        /**
+         * 模拟 Fetch 实现
+         * 模拟网络请求和响应，支持根据查询参数过滤数据
+         */
+        function mockFetch(url, options) {
+            console.log(`[MockFetch] 请求地址: ${url}`, options);
+            
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // 模拟基于 URL 的路由
+                    if (url.includes(API_CONFIG.endpoints.getTodoList)) {
+                        // 解析查询参数
+                        const urlObj = new URL(url);
+                        const params = new URLSearchParams(urlObj.search);
+                        const keyword = params.get('keyword') || '';
+                        const source = params.get('source') || '';
+                        const statusFilter = params.get('status') || '';
+                        const page = parseInt(params.get('page')) || 1;
+                        const pageSize = parseInt(params.get('pageSize')) || 5;
+
+                        // 模拟后端过滤逻辑
+                        let filteredData = mockData.filter(item => {
+                            // 关键词搜索 (匹配标题)
+                            const matchKeyword = keyword === '' || item.title.toLowerCase().includes(keyword.toLowerCase());
+                            // 来源筛选
+                            const matchSource = source === '' || source === '全部' || item.systemName.replace('\n', '') === source;
+                            // 状态筛选
+                            const matchStatus = statusFilter === '' || item.category === statusFilter;
+                            
+                            return matchKeyword && matchSource && matchStatus;
+                        });
+
+                        // 实现分页逻辑
+                        const total = filteredData.length;
+                        const startIndex = (page - 1) * pageSize;
+                        const endIndex = startIndex + pageSize;
+                        const paginatedData = filteredData.slice(startIndex, endIndex);
+                        const hasMore = endIndex < total;
+
+                        const response = {
+                            ok: true,
+                            status: 200,
+                            json: async () => ({
+                                code: 200,
+                                message: "Success",
+                                data: {
+                                    list: paginatedData,
+                                    total: total,
+                                    page: page,
+                                    pageSize: pageSize,
+                                    hasMore: hasMore
+                                }
+                            })
+                        };
+                        resolve(response);
+                    } else {
+                        // 未知路由返回 404
+                        resolve({
+                            ok: false,
+                            status: 404,
+                            statusText: "Not Found"
+                        });
+                    }
+                }, 500); // 500ms 网络延迟
+            });
+        }
+
+        /**
+         * 获取待办列表数据
+         * 使用 mockFetch 模拟 API 调用
+         */
+        async function fetchTodoList(filters = {}) {
+            // 这里可以处理加载状态
+            console.log('正在获取数据，筛选条件:', filters);
+
+            try {
+                const queryString = new URLSearchParams(filters).toString();
+                const fullUrl = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.getTodoList}?${queryString}`;
+                
+                // 使用 mockFetch 代替 window.fetch 进行演示
+                const response = await mockFetch(fullUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 'Authorization': 'Bearer ' + token 
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('网络响应异常');
+                }
+
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    return result.data; // 返回完整数据包含 list, total, hasMore
+                } else {
+                    console.error('API 错误:', result.message);
+                    return { list: [], total: 0, hasMore: false };
+                }
+
+            } catch (error) {
+                console.error('获取待办列表失败:', error);
+                // 处理错误 UI
+                return { list: [], total: 0, hasMore: false };
+            }
+        }
+
+        /**
+         * 渲染加载动画
+         */
+        function renderLoading() {
+            const listContainer = document.getElementById('todoList');
+            listContainer.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                </div>
+            `;
+        }
+
+        /**
+         * 渲染列表项
+         * @param {Array} items - 待办项数组
+         * @param {Boolean} append - 是否追加模式
+         */
+        function renderList(items, append = false) {
+            const listContainer = document.getElementById('todoList');
+            
+            // 移除底部加载UI（如果存在）
+            const existingBottomUI = listContainer.querySelector('.load-more-container, .bottom-loading, .no-more-text');
+            if (existingBottomUI) {
+                existingBottomUI.remove();
+            }
+            
+            if (!append) {
+                listContainer.innerHTML = ''; // 清空现有内容
+            }
+
+            if (items.length === 0 && !append) {
+                listContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #999; font-size: 14px;">暂无数据</div>';
+                return;
+            }
+
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'todo-item';
+                
+                // Handle newlines in system name
+                const systemNameHtml = item.systemName.replace(/\n/g, '<br>');
+
+                itemEl.innerHTML = `
+                    <div class="system-icon ${item.systemColor}">
+                        ${systemNameHtml}
+                    </div>
+                    <div class="item-content">
+                        <div class="item-header">
+                            <div class="item-title">${item.title}</div>
+                            <div class="item-status status-${item.statusType}">${item.status}</div>
+                        </div>
+                        <div class="item-meta">
+                            <div class="meta-group">
+                                <svg class="meta-icon" viewBox="0 0 24 24">
+                                    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                                </svg>
+                                <span>${item.date}</span>
+                            </div>
+                            <div class="meta-group">
+                                <svg class="meta-icon" viewBox="0 0 24 24">
+                                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                                </svg>
+                                <span>${item.duration}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(itemEl);
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 返回按钮逻辑
+            document.querySelector('.back-btn').addEventListener('click', () => {
+                history.back();
+                console.log('点击返回按钮');
+            });
+
+            // 分页状态
+            let currentPage = 1;
+            const pageSize = 10;
+            let hasMore = true;
+            let isLoading = false;
+            let useScrollLoad = false; // 是否使用滚动加载
+
+            // 当前筛选状态
+            let currentFilters = {
+                keyword: '',
+                source: '',
+                status: '待我处理', // 新增状态筛选，默认为"待我处理"
+                page: currentPage,
+                pageSize: pageSize
+            };
+
+            // 隐藏页面loading
+            const hidePageLoading = () => {
+                const overlay = document.getElementById('pageLoadingOverlay');
+                if (overlay) {
+                    overlay.style.display = 'none';
+                }
+            };
+
+            // 检测是否有滚动条
+            const checkScrollable = () => {
+                const listContainer = document.getElementById('todoList');
+                return listContainer.scrollHeight > listContainer.clientHeight;
+            };
+
+            // 渲染底部UI
+            const renderBottomUI = () => {
+                const listContainer = document.getElementById('todoList');
+                
+                // 移除旧的底部UI
+                const oldUI = listContainer.querySelector('.load-more-container, .bottom-loading, .no-more-text');
+                if (oldUI) oldUI.remove();
+
+                if (isLoading) {
+                    // 加载中
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'bottom-loading';
+                    loadingDiv.innerHTML = '<div class="spinner"></div><span>加载中...</span>';
+                    listContainer.appendChild(loadingDiv);
+                } else if (!hasMore) {
+                    // 没有更多了
+                    const noMoreDiv = document.createElement('div');
+                    noMoreDiv.className = 'no-more-text';
+                    noMoreDiv.textContent = '没有更多了';
+                    listContainer.appendChild(noMoreDiv);
+                } else if (!useScrollLoad) {
+                    // 显示加载更多按钮
+                    const btnContainer = document.createElement('div');
+                    btnContainer.className = 'load-more-container';
+                    btnContainer.innerHTML = '<button class="load-more-btn">加载更多</button>';
+                    listContainer.appendChild(btnContainer);
+                    
+                    // 绑定点击事件
+                    btnContainer.querySelector('.load-more-btn').addEventListener('click', loadMore);
+                }
+            };
+
+            // 加载更多数据
+            const loadMore = async () => {
+                if (isLoading || !hasMore) return;
+                
+                isLoading = true;
+                currentPage++;
+                currentFilters.page = currentPage;
+                
+                renderBottomUI();
+                
+                const result = await fetchTodoList(currentFilters);
+                hasMore = result.hasMore;
+                renderList(result.list, true); // 追加模式
+                
+                isLoading = false;
+                
+                // 重新检测并更新UI
+                useScrollLoad = checkScrollable();
+                renderBottomUI();
+            };
+
+            // 滚动加载
+            const handleScroll = () => {
+                if (!useScrollLoad || isLoading || !hasMore) return;
+                
+                const listContainer = document.getElementById('todoList');
+                const scrollTop = listContainer.scrollTop;
+                const scrollHeight = listContainer.scrollHeight;
+                const clientHeight = listContainer.clientHeight;
+                
+                // 距离底部50px时触发加载
+                if (scrollTop + clientHeight >= scrollHeight - 50) {
+                    loadMore();
+                }
+            };
+
+            // 重置分页状态
+            const resetPagination = () => {
+                currentPage = 1;
+                hasMore = true;
+                currentFilters.page = 1;
+            };
+
+            // 初始获取数据
+            const result = await fetchTodoList(currentFilters);
+            hasMore = result.hasMore;
+            renderList(result.list);
+            hidePageLoading();
+            
+            // 检测是否需要滚动加载
+            useScrollLoad = checkScrollable();
+            renderBottomUI();
+            
+            // 监听滚动事件
+            const listContainer = document.getElementById('todoList');
+            listContainer.addEventListener('scroll', handleScroll);
+
+            // 状态选项卡交互
+            const statusTabs = document.querySelectorAll('.status-tab');
+            statusTabs.forEach(tab => {
+                tab.addEventListener('click', async () => {
+                    // 更新 UI 状态
+                    statusTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // 重置分页
+                    resetPagination();
+                    
+                    // 更新筛选条件并重新获取数据
+                    currentFilters.status = tab.dataset.status;
+                    console.log('选择状态:', tab.innerText);
+                    
+                    renderLoading();
+                    const result = await fetchTodoList(currentFilters);
+                    hasMore = result.hasMore;
+                    renderList(result.list);
+                    
+                    // 重新检测滚动条
+                    useScrollLoad = checkScrollable();
+                    renderBottomUI();
+                });
+            });
+
+            // 筛选弹窗切换逻辑
+            const filterBtn = document.getElementById('filterBtn');
+            const filterPopover = document.getElementById('filterPopover');
+            
+            filterBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 防止立即关闭
+                filterPopover.classList.toggle('show');
+            });
+
+            // 点击外部关闭弹窗
+            document.addEventListener('click', (e) => {
+                if (!filterPopover.contains(e.target) && !filterBtn.contains(e.target)) {
+                    filterPopover.classList.remove('show');
+                }
+            });
+
+            // 筛选标签交互
+            const filterTags = document.querySelectorAll('.filter-tag');
+            filterTags.forEach(tag => {
+                tag.addEventListener('click', async () => {
+                    // 更新 UI 状态
+                    filterTags.forEach(t => t.classList.remove('active'));
+                    tag.classList.add('active');
+                    
+                    // 重置分页
+                    resetPagination();
+                    
+                    // 更新筛选条件并重新获取数据
+                    const selectedSource = tag.innerText === '全部' ? '' : tag.innerText;
+                    currentFilters.source = selectedSource;
+                    console.log('选择筛选来源:', tag.innerText);
+                    
+                    renderLoading();
+                    const result = await fetchTodoList(currentFilters);
+                    hasMore = result.hasMore;
+                    renderList(result.list);
+                    
+                    // 重新检测滚动条
+                    useScrollLoad = checkScrollable();
+                    renderBottomUI();
+                    
+                    // 可选：选择后自动关闭弹窗
+                    // filterPopover.classList.remove('show');
+                });
+            });
+
+            // 搜索功能交互
+            const searchInput = document.querySelector('.search-input');
+            let searchTimeout;
+
+            searchInput.addEventListener('input', (e) => {
+                // 防抖处理，避免频繁请求
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(async () => {
+                    // 重置分页
+                    resetPagination();
+                    
+                    currentFilters.keyword = e.target.value.trim();
+                    console.log('搜索关键词:', currentFilters.keyword);
+                    
+                    renderLoading();
+                    const result = await fetchTodoList(currentFilters);
+                    hasMore = result.hasMore;
+                    renderList(result.list);
+                    
+                    // 重新检测滚动条
+                    useScrollLoad = checkScrollable();
+                    renderBottomUI();
+                }, 300);
+            });
+        });
+
+    </script>
+</body>
+</html>
