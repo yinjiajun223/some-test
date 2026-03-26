@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>搜索框 Widget Demo</title>
+</head>
+<body>
+
+  <h2>第三方网站页面（模拟）</h2>
+
+  <!-- 宿主页面自己的内容 -->
+  <p>这里是第三方网站的内容</p>
+
+  <!-- 你的组件挂载点 -->
+  <div id="my-search-widget"></div>
+
+  <!-- 模拟你提供的 SDK -->
+  <script>
+    (function () {
+      // 获取当前 script（这里用最后一个 script 模拟）
+      const script = document.currentScript;
+
+      // 配置（模拟 data-*）
+      const config = {
+        target: "my-search-widget",
+        placeholder: "搜索商品...",
+        width: "260px"
+      };
+
+      const container = document.getElementById(config.target);
+      if (!container) return;
+
+      // 创建 Shadow DOM（防止样式污染 ⭐）
+      const shadow = container.attachShadow({ mode: "open" });
+
+      // 样式 + HTML
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = `
+        <style>
+          .search-box {
+            display: flex;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            overflow: hidden;
+            width: ${config.width};
+            font-family: Arial, sans-serif;
+          }
+          input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+          }
+          button {
+            padding: 8px 12px;
+            border: none;
+            background: #1677ff;
+            color: #fff;
+            cursor: pointer;
+          }
+          button:hover {
+            background: #4096ff;
+          }
+        </style>
+
+        <div class="search-box">
+          <input type="text" placeholder="${config.placeholder}" />
+          <button>搜索</button>
+        </div>
+      `;
+
+      shadow.appendChild(wrapper);
+
+      const input = shadow.querySelector("input");
+      input.value = "智搜输入框"; // 默认空
+      const button = shadow.querySelector("button");
+
+      function handleSearch() {
+        const keyword = input.value.trim();
+        if (!keyword) return;
+
+      alert(`跳转智搜 --> 搜索关键词: ${keyword}`); // 这里你可以替换成实际的搜索逻辑
+      }
+
+      // 回车触发
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          handleSearch();
+        }
+      });
+
+      // 点击按钮
+      button.addEventListener("click", handleSearch);
+
+    })();
+  </script>
+
+</body>
+</html>

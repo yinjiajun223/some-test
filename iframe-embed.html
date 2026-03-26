@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图书馆智能搜索</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        font-family:
+          "PingFang SC",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Helvetica Neue",
+          Arial,
+          sans-serif;
+        background: url("./assets/images/search-bg.png") center center / cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .iframe-wrap {
+        height: 48px;
+        overflow: hidden;
+        width: 500px;
+        height: 600px;
+        position: absolute;
+        top: 180px;
+      }
+
+      .iframe-wrap iframe {
+        width: 100%;
+        height: 350px;
+        border: none;
+        display: block;
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="iframe-wrap">
+      <iframe src="http://search-web.chaoxing.com/embed/search" scrolling="no" frameborder="0" allowtransparency="true" title="图书馆搜索"></iframe>
+    </div>
+  </body>
+</html>
