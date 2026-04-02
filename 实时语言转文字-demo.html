@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时语言转文字 Demo</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --border: #e5e7eb;
+            --text: #111827;
+            --muted: #6b7280;
+            --accent: #2563eb;
+            --accent-soft: #eff6ff;
+            --danger: #dc2626;
+            --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            padding: 24px;
+        }
+
+        .app {
+            width: min(800px, 100%);
+            height: 90vh;
+            margin: 5vh auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--text);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #bfdbfe;
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.35);
+            transition: background-color 0.2s ease;
+        }
+
+        .app.recording .live-dot {
+            background: var(--danger);
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35);
+            animation: dotPulse 1.5s ease infinite;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .output {
+            flex: 1;
+            background: #fafafa;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .controls {
+            padding: 16px 20px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        select.language {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            background: #fff;
+            color: var(--text);
+            cursor: pointer;
+            outline: none;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            transform: none;
+        }
+
+        .primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .secondary {
+            background: #f3f4f6;
+            color: var(--text);
+        }
+
+        .danger {
+            background: #fef2f2;
+            color: var(--danger);
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .placeholder {
+            color: var(--muted);
+            font-size: 14px;
+            align-self: center;
+            margin: auto;
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        .segment {
+            padding: 14px;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+        }
+
+        .segment-time {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .segment-text {
+            color: var(--text);
+            word-break: break-word;
+        }
+
+        .interim-card {
+            padding: 12px;
+            border-radius: 12px;
+            background: #eff6ff;
+            border: 1px dashed #93c5fd;
+        }
+
+        .interim-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .interim-text {
+            color: #6e7768;
+            font-style: italic;
+            word-break: break-word;
+        }
+
+        .error {
+            margin: 0 20px 16px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: #fef2f2;
+            color: #991b1b;
+            font-size: 13px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(17, 24, 39, 0.92);
+            color: #fff;
+            font-size: 13px;
+            box-shadow: 0 14px 30px rgba(17, 24, 39, 0.16);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .footer-note {
+            padding: 0 24px 24px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        @keyframes dotPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+
+            .app {
+                height: 98vh;
+                margin: 0;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls-left, .actions {
+                justify-content: space-between;
+                flex-direction: row;
+                width: 100%;
+            }
+
+            .footer-note {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <header class="header">
+            <div class="header-title">
+                <h1>实时语言转文字</h1>
+                <div class="live-dot" aria-hidden="true" id="liveDot"></div>
+                <div class="meta" id="metaText">未开始</div>
+            </div>
+            <select id="language" class="language">
+                <option value="zh-CN" selected>中文 zh-CN</option>
+                <option value="en-US">英文 en-US</option>
+                <option value="ja-JP">日文 ja-JP</option>
+            </select>
+        </header>
+
+        <main class="content">
+            <div class="error" id="errorBox" style="margin-top:16px;"></div>
+            
+            <section class="output" id="transcript">
+                <div class="placeholder">点击底部“开始识别”说话<br>建议使用 Chrome 或 Edge 并在本地服务环境下访问</div>
+            </section>
+        </main>
+
+        <aside class="controls">
+            <div class="controls-left">
+                <button class="primary" id="startBtn">开始识别</button>
+                <button class="secondary" id="stopBtn" disabled>停止识别</button>
+            </div>
+            <div class="actions">
+                <button class="secondary" id="copyBtn">复制内容</button>
+                <button class="danger" id="clearBtn">清空</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        const app = document.getElementById('app');
+        const languageSelect = document.getElementById('language');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const metaText = document.getElementById('metaText');
+        const transcript = document.getElementById('transcript');
+        const errorBox = document.getElementById('errorBox');
+        const liveDot = document.getElementById('liveDot');
+        const toast = document.getElementById('toast');
+
+        let recognition = null;
+        let finalText = '';
+        let interimText = '';
+        let segments = [];
+        let shouldRestart = false;
+        let startedAt = null;
+        let timerId = null;
+        let toastTimerId = null;
+
+        function showToast(message) {
+            window.clearTimeout(toastTimerId);
+            toast.textContent = message;
+            toast.classList.add('show');
+            toastTimerId = window.setTimeout(function () {
+                toast.classList.remove('show');
+            }, 1800);
+        }
+
+        function setStatus(isRecording) {
+            app.classList.toggle('recording', Boolean(isRecording));
+            startBtn.disabled = Boolean(isRecording);
+            stopBtn.disabled = !isRecording;
+        }
+
+        function setError(message) {
+            errorBox.textContent = message;
+            errorBox.classList.toggle('show', Boolean(message));
+        }
+
+        function formatTime(date) {
+            return new Intl.DateTimeFormat('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).format(date);
+        }
+
+        function renderTranscript() {
+            if (!segments.length && !interimText) {
+                transcript.innerHTML = '<div class="placeholder">点击底部“开始识别”说话<br>建议使用 Chrome 或 Edge 并在本地服务环境下访问</div>';
+                return;
+            }
+
+            const finalHtml = segments.map(function (segment) {
+                return '<article class="segment">'
+                    + '<div class="segment-time">' + segment.time + '</div>'
+                    + '<div class="segment-text"></div>'
+                    + '</article>';
+            }).join('');
+
+            const interimHtml = interimText
+                ? '<div class="interim-card"><div class="interim-label">实时识别中</div><div class="interim-text"></div></div>'
+                : '';
+
+            transcript.innerHTML = finalHtml + interimHtml;
+
+            transcript.querySelectorAll('.segment-text').forEach(function (node, index) {
+                node.textContent = segments[index].text;
+            });
+
+            if (interimText) {
+                transcript.querySelector('.interim-text').textContent = interimText;
+            }
+
+            transcript.scrollTop = transcript.scrollHeight;
+        }
+
+        function updateMeta(text) {
+            metaText.textContent = text;
+        }
+
+        function initRecognition() {
+            if (!SpeechRecognition) {
+                setStatus(false);
+                setError('当前浏览器不支持 Web Speech API。请使用较新的 Chrome 或 Edge。');
+                startBtn.disabled = true;
+                copyBtn.disabled = true;
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = languageSelect.value;
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = function () {
+                startedAt = new Date();
+                setError('');
+                setStatus(true);
+                updateMeta('开始时间：' + formatTime(startedAt) + '，监听中...');
+                showToast('识别已开始');
+            };
+
+            recognition.onresult = function (event) {
+                let nextFinalText = finalText;
+                let nextInterimText = '';
+
+                for (let index = event.resultIndex; index < event.results.length; index += 1) {
+                    const result = event.results[index];
+                    const text = result[0].transcript.trim();
+
+                    if (!text) {
+                        continue;
+                    }
+
+                    if (result.isFinal) {
+                        nextFinalText += text + ' ';
+                        segments.push({
+                            text: text,
+                            time: formatTime(new Date())
+                        });
+                    } else {
+                        nextInterimText += text;
+                    }
+                }
+
+                finalText = nextFinalText;
+                interimText = nextInterimText;
+                renderTranscript();
+                updateMeta('已识别 ' + finalText.trim().length + ' 个字符');
+            };
+
+            recognition.onerror = function (event) {
+                const messageMap = {
+                    'audio-capture': '没有检测到可用麦克风，请检查设备。',
+                    'not-allowed': '麦克风权限被拒绝，请允许浏览器访问麦克风。',
+                    'service-not-allowed': '浏览器当前不允许使用语音识别服务。',
+                    'network': '语音识别服务连接失败，请检查网络。',
+                    'no-speech': '没有检测到语音输入，请靠近麦克风后重试。',
+                    'aborted': '识别已中断。'
+                };
+
+                setError(messageMap[event.error] || ('识别出错：' + event.error));
+                updateMeta('识别异常，请查看错误提示');
+            };
+
+            recognition.onend = function () {
+                const needRestart = shouldRestart;
+                setStatus(false);
+
+                if (needRestart) {
+                    try {
+                        recognition.lang = languageSelect.value;
+                        recognition.start();
+                    } catch (error) {
+                        shouldRestart = false;
+                        setError('重新启动识别失败，请再次点击开始。');
+                    }
+                    return;
+                }
+
+                updateMeta(finalText ? '识别结束，已保留当前结果' : '识别已停止');
+                showToast('识别已停止');
+            };
+        }
+
+        startBtn.addEventListener('click', function () {
+            if (!recognition) {
+                initRecognition();
+            }
+
+            if (!recognition) {
+                return;
+            }
+
+            recognition.lang = languageSelect.value;
+            shouldRestart = true;
+
+            try {
+                recognition.start();
+            } catch (error) {
+                setError('识别已经在运行中，或浏览器尚未准备好。');
+            }
+        });
+
+        stopBtn.addEventListener('click', function () {
+            if (!recognition) {
+                return;
+            }
+
+            shouldRestart = false;
+            recognition.stop();
+        });
+
+        clearBtn.addEventListener('click', function () {
+            finalText = '';
+            interimText = '';
+            segments = [];
+            startedAt = null;
+            renderTranscript();
+            updateMeta('未开始');
+            setError('');
+            showToast('内容已清空');
+        });
+
+        copyBtn.addEventListener('click', async function () {
+            const text = (finalText + interimText).trim();
+
+            if (!text) {
+                setError('当前没有可复制的内容。');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+                setError('');
+                updateMeta('已复制到剪贴板');
+                showToast('文本已复制');
+            } catch (error) {
+                setError('复制失败，当前环境可能不支持剪贴板 API。');
+            }
+        });
+
+        languageSelect.addEventListener('change', function () {
+            if (recognition) {
+                recognition.lang = languageSelect.value;
+            }
+
+            updateMeta('语言已切换为 ' + languageSelect.value);
+        });
+
+        document.addEventListener('keydown', function (event) {
+            const target = event.target;
+            const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT');
+
+            if (isTyping) {
+                return;
+            }
+
+            if (event.code === 'Space') {
+                event.preventDefault();
+
+                if (startBtn.disabled) {
+                    stopBtn.click();
+                } else {
+                    startBtn.click();
+                }
+            }
+
+            if (event.ctrlKey && event.key.toLowerCase() === 'l') {
+                event.preventDefault();
+                clearBtn.click();
+            }
+        });
+
+        initRecognition();
+        renderTranscript();
+    </script>
+</body>
+</html>
