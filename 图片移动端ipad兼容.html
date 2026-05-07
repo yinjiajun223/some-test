@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+  <title>一句话评价背景适配</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #f5f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      padding: 24px 0;
+    }
+
+    /*
+      原图尺寸：1266 × 534
+      宽高比：1266 / 534
+
+      要点：
+      1. width: 100%，永远占满父容器宽度
+      2. aspect-ratio 保持原图比例
+      3. background-size: 100% 100%，背景跟容器同步缩放
+      4. 文字使用百分比定位，跟随图片位置走
+    */
+    .summary-card {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1266 / 534;
+
+      background-image: url("./assets/images/summary.png");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%;
+      overflow: hidden;
+    }
+
+    .summary-text {
+      position: absolute;
+
+      /*
+        这里根据你的图片中文字区域调的。
+        以后图片整体缩放，文字位置也会按比例缩放。
+      */
+      left: 7.5%;
+      right: 6.5%;
+      top: 43%;
+
+      color: #303133;
+      font-weight: 400;
+      line-height: 1.65;
+
+      /*
+        宽度 100% 时，字体也随屏幕变化。
+        clamp 防止手机太小、iPad 太大。
+      */
+      font-size: clamp(14px, 4.2vw, 30px);
+    }
+
+    /*
+      示例：如果你还需要放评分、标签等，也用百分比定位。
+    */
+    .summary-score {
+      position: absolute;
+      right: 10%;
+      top: 18%;
+
+      font-size: clamp(14px, 3.6vw, 26px);
+      font-weight: 600;
+      color: #2072ff;
+    }
+
+    /*
+      iPad 上宽度仍然是 100%。
+      这里只控制字体不要被放得过大。
+      如果你希望字体也完全按屏幕放大，可以删除这个 media。
+    */
+    @media (min-width: 768px) {
+      .summary-text {
+        font-size: clamp(18px, 3vw, 34px);
+      }
+
+      .summary-score {
+        font-size: clamp(18px, 2.6vw, 30px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="summary-card">
+      <div class="summary-text">
+        这篇文章整体表达清晰，主题明确，结构较完整。内容能够围绕核心观点展开，但在细节论证和语言感染力方面还有提升空间。
+      </div>
+
+      <!-- 不需要评分可以删掉这一块 -->
+      <!-- <div class="summary-score">93分</div> -->
+    </div>
+  </div>
+</body>
+</html>

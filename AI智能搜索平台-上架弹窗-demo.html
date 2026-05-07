@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>选择分类弹窗 Demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5.27.0/dist/reset.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body,
+        #root {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(32, 114, 255, 0.14), transparent 24%),
+                linear-gradient(180deg, #f7faff 0%, #edf3fb 100%);
+            color: #1f2d3d;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .panel {
+            width: min(560px, 100%);
+            padding: 40px;
+            border-radius: 28px;
+            border: 1px solid rgba(216, 227, 245, 0.9);
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 20px 50px rgba(19, 49, 95, 0.1);
+            text-align: center;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.2;
+        }
+
+        .desc {
+            margin: 14px auto 28px;
+            max-width: 420px;
+            color: #637792;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .trigger-box {
+            padding: 16px;
+            border-radius: 20px;
+            background: #f6f9ff;
+            border: 1px solid #e6eefc;
+        }
+
+        .modal-wrap {
+            padding: 28px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.2;
+        }
+
+        .modal-desc {
+            margin: 12px 0 18px;
+            color: #637792;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .select-trigger {
+            width: 100%;
+            min-height: 54px;
+            padding: 14px 18px;
+            border-radius: 16px;
+            border: 1px solid #d9e4f7;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #1f2d3d;
+            cursor: pointer;
+        }
+
+        .category-panel {
+            margin-top: 14px;
+            border: 1px solid #d9e4f7;
+            border-radius: 20px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            min-height: 260px;
+            background: #ffffff;
+            box-shadow: 0 16px 34px rgba(30, 56, 104, 0.1);
+        }
+
+        .primary-col {
+            padding: 14px;
+            background: #f7faff;
+            border-right: 1px solid #edf2fb;
+        }
+
+        .secondary-col {
+            padding: 18px;
+        }
+
+        .primary-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .primary-item + .primary-item {
+            margin-top: 8px;
+        }
+
+        .primary-item.active,
+        .primary-item:hover {
+            background: #ffffff;
+            color: #2072ff;
+            box-shadow: 0 8px 16px rgba(32, 114, 255, 0.08);
+        }
+
+        .secondary-tip {
+            color: #637792;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chip {
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid #e6eefc;
+            background: #f7faff;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .chip.active,
+        .chip:hover {
+            border-color: #bcd5ff;
+            background: #eef4ff;
+            color: #1c59d8;
+        }
+
+        .footer-row {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        @media (max-width: 720px) {
+            .panel {
+                padding: 28px 20px;
+            }
+
+            .category-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ant-design/icons@5.5.1/dist/index.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/antd@5.27.0/dist/antd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const ReactLib = window.React;
+        const ReactDOMLib = window.ReactDOM;
+        const AntdLib = window.antd;
+        const IconsLib = window.icons;
+
+        if (!ReactLib || !ReactDOMLib || !AntdLib || !IconsLib) {
+            document.getElementById('root').innerHTML = '<div style="padding:24px;font-family:PingFang SC,Microsoft YaHei,sans-serif;color:#c0392b;">CDN 资源加载失败，请检查网络或稍后重试。</div>';
+            throw new Error('CDN libraries failed to load');
+        }
+
+        const { App: AntApp, Button, ConfigProvider, Modal, Space, Tag } = AntdLib;
+        const { DownOutlined, FolderOpenOutlined, RocketOutlined } = IconsLib;
+
+        const categoryTree = [
+            {
+                label: '通用训练场景',
+                children: ['其他', '表达能力', '演讲答辩', '沟通协作']
+            },
+            {
+                label: '商业管理实战',
+                children: ['产品策划', '项目推进', '市场分析']
+            },
+            {
+                label: '医学案例分析',
+                children: ['病例推演', '患者访谈', '病历沟通']
+            },
+            {
+                label: '工程技术应用',
+                children: ['技术面试', '系统设计', '故障排查']
+            }
+        ];
+
+        function App() {
+            const [open, setOpen] = ReactLib.useState(false);
+            const [expanded, setExpanded] = ReactLib.useState(true);
+            const [hoveredPrimary, setHoveredPrimary] = ReactLib.useState(categoryTree[0].label);
+            const [selectedCategory, setSelectedCategory] = ReactLib.useState('');
+
+            const currentPrimary = categoryTree.find((item) => item.label === hoveredPrimary) || categoryTree[0];
+
+            function openModal() {
+                setOpen(true);
+                setExpanded(true);
+            }
+
+            function closeModal() {
+                setOpen(false);
+            }
+
+            function chooseCategory(primary, secondary) {
+                setSelectedCategory(primary + ' / ' + secondary);
+            }
+
+            return (
+                <ConfigProvider
+                    theme={{
+                        token: {
+                            colorPrimary: '#2072ff',
+                            borderRadius: 14,
+                            colorText: '#1f2d3d',
+                            colorTextSecondary: '#637792',
+                            fontFamily: 'PingFang SC, Microsoft YaHei, sans-serif'
+                        }
+                    }}
+                >
+                    <AntApp>
+                        <div className="page">
+                            <div className="panel">
+                                <h1 className="title">选择分类弹窗</h1>
+                                <div className="desc">
+                                    这里只保留最小交互：点击按钮打开弹窗，在弹窗里选择一级分类和二级分类，选中后可点击确定。
+                                </div>
+                                <div className="trigger-box">
+                                    <Button type="primary" size="large" icon={<RocketOutlined />} onClick={openModal}>
+                                        打开选择分类弹窗
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Modal open={open} footer={null} closable={false} width={720} onCancel={closeModal} destroyOnClose>
+                            <div className="modal-wrap">
+                                <h2 className="modal-title">确定上架该对话场景吗？</h2>
+                                <div className="modal-desc">
+                                    上架后，该场景会公开至全校模板市场，上架前先选择分类。
+                                </div>
+
+                                <div className="select-trigger" onClick={() => setExpanded((value) => !value)}>
+                                    <span>{selectedCategory || '请选择'}</span>
+                                    <DownOutlined rotate={expanded ? 180 : 0} />
+                                </div>
+
+                                {expanded ? (
+                                    <div className="category-panel">
+                                        <div className="primary-col">
+                                            {categoryTree.map((item) => (
+                                                <div
+                                                    key={item.label}
+                                                    className={['primary-item', hoveredPrimary === item.label ? 'active' : ''].join(' ')}
+                                                    onMouseEnter={() => setHoveredPrimary(item.label)}
+                                                    onClick={() => setHoveredPrimary(item.label)}
+                                                >
+                                                    <span>{item.label}</span>
+                                                    <span>›</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="secondary-col">
+                                            <div className="secondary-tip">鼠标移入一级分类后，右侧展示对应二级分类</div>
+                                            <div className="chip-list">
+                                                {currentPrimary.children.map((child) => {
+                                                    const value = currentPrimary.label + ' / ' + child;
+                                                    return (
+                                                        <div
+                                                            key={value}
+                                                            className={['chip', selectedCategory === value ? 'active' : ''].join(' ')}
+                                                            onClick={() => chooseCategory(currentPrimary.label, child)}
+                                                        >
+                                                            {child}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : null}
+
+                                <div className="footer-row">
+                                    <Space size={10} wrap>
+                                        <Tag icon={<FolderOpenOutlined />} color={selectedCategory ? 'blue' : 'default'} bordered={false}>
+                                            {selectedCategory ? '已选分类：' + selectedCategory : '未选择分类'}
+                                        </Tag>
+                                    </Space>
+
+                                    <Space size={12}>
+                                        <Button size="large" onClick={closeModal}>取消</Button>
+                                        <Button size="large" type="primary" disabled={!selectedCategory} onClick={closeModal}>确定</Button>
+                                    </Space>
+                                </div>
+                            </div>
+                        </Modal>
+                    </AntApp>
+                </ConfigProvider>
+            );
+        }
+
+        ReactDOMLib.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

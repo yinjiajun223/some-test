@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>接口签名调试</title>
+    <style>
+      :root {
+        --bg: #f6f7fb;
+        --panel: #fff;
+        --text: #20242c;
+        --muted: #667085;
+        --line: #d8deea;
+        --primary: #1464f4;
+        --primary-dark: #0d4fc2;
+        --ok: #147d64;
+        --warn: #a15c05;
+        --danger: #b42318;
+        --code: #111827;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background: var(--bg);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      }
+      main {
+        width: min(1280px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 24px 0;
+      }
+      header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        font-weight: 750;
+      }
+      h2 {
+        margin: 0 0 14px;
+        font-size: 17px;
+      }
+      .sub {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+        gap: 16px;
+        align-items: start;
+      }
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+      }
+      .field {
+        margin-bottom: 14px;
+      }
+      label {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+        color: #344054;
+        font-size: 13px;
+        font-weight: 650;
+      }
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: var(--text);
+        background: #fff;
+        font: inherit;
+        font-size: 14px;
+        outline: none;
+      }
+      input {
+        height: 38px;
+        padding: 0 10px;
+      }
+      textarea {
+        min-height: 220px;
+        padding: 10px;
+        resize: vertical;
+        line-height: 1.55;
+        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      }
+      input:focus,
+      textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(20, 100, 244, 0.12);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      button {
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0 14px;
+        color: var(--text);
+        background: #fff;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      button.primary {
+        border-color: var(--primary);
+        color: #fff;
+        background: var(--primary);
+      }
+      button.primary:hover {
+        background: var(--primary-dark);
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .status {
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin-bottom: 12px;
+        color: var(--muted);
+        background: #f9fafb;
+        border: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .status.ok {
+        color: var(--ok);
+        background: #ecfdf3;
+        border-color: #abefc6;
+      }
+      .status.warn {
+        color: var(--warn);
+        background: #fffaeb;
+        border-color: #fedf89;
+      }
+      .status.error {
+        color: var(--danger);
+        background: #fef3f2;
+        border-color: #fecdca;
+      }
+      pre {
+        min-height: 130px;
+        max-height: 300px;
+        overflow: auto;
+        margin: 0;
+        border-radius: 6px;
+        padding: 12px;
+        color: #e5e7eb;
+        background: var(--code);
+        line-height: 1.55;
+        font-size: 13px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+      @media (max-width: 900px) {
+        main {
+          width: min(100vw - 20px, 720px);
+          padding: 16px 0;
+        }
+        header,
+        .layout,
+        .grid {
+          display: block;
+        }
+        section,
+        .field {
+          margin-bottom: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>接口签名调试</h1>
+          <p class="sub">doPreOrder 请求体签名、本地预览、浏览器直调</p>
+        </div>
+      </header>
+
+      <div class="layout">
+        <section>
+          <h2>请求配置</h2>
+          <div class="field">
+            <label for="url">接口地址</label>
+            <input id="url" value="https://jmclint.hwwt2.com/open/sharing/open/doPreOrder" />
+          </div>
+          <div class="grid">
+            <div class="field">
+              <label for="token">e_token</label>
+              <input id="token" type="password" placeholder="填入环境变量 e_token 的真实值" />
+            </div>
+            <div class="field">
+              <label for="timeout">超时毫秒</label>
+              <input id="timeout" type="number" min="1000" step="1000" value="15000" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="headers">请求头 JSON</label>
+            <textarea id="headers" spellcheck="false">
+{
+  "content-type": "application/json"
+}</textarea
+            >
+          </div>
+          <div class="field">
+            <label for="body">请求参数 JSON</label>
+            <textarea id="body" spellcheck="false">
+{
+  "jde_id_out": "980",
+  "baisheng_id_in": "7799",
+  "business_main_no": "1791231237831501",
+  "order_amt": "500",
+  "discount_amt": "150",
+  "attach": "JDE测试供应链",
+  "order_body": "JDE测试供应链",
+  "sharing_type": "0",
+  "api_ver": "100",
+  "inst_no": "52100001",
+  "trace_no": "12345678123456781234567812345678",
+  "key_sign": "{{key_sign}}"
+}</textarea
+            >
+          </div>
+          <div class="actions">
+            <button class="primary" id="sendBtn" type="button">发送请求</button>
+            <button id="signBtn" type="button">只生成签名</button>
+            <button id="copyBtn" type="button">复制 cURL</button>
+          </div>
+        </section>
+
+        <section class="stack">
+          <div>
+            <h2>执行结果</h2>
+            <div id="status" class="status">等待操作</div>
+          </div>
+          <div>
+            <label>签名串</label>
+            <pre id="signSource"></pre>
+          </div>
+          <div>
+            <label>最终请求体</label>
+            <pre id="signedBody"></pre>
+          </div>
+          <div>
+            <label>响应</label>
+            <pre id="response"></pre>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const urlEl = document.querySelector("#url");
+      const tokenEl = document.querySelector("#token");
+      const timeoutEl = document.querySelector("#timeout");
+      const headersEl = document.querySelector("#headers");
+      const bodyEl = document.querySelector("#body");
+      const statusEl = document.querySelector("#status");
+      const signSourceEl = document.querySelector("#signSource");
+      const signedBodyEl = document.querySelector("#signedBody");
+      const responseEl = document.querySelector("#response");
+      const sendBtn = document.querySelector("#sendBtn");
+
+      document.querySelector("#signBtn").addEventListener("click", () => {
+        try {
+          const signed = buildSignedPayload();
+          renderPreview(signed);
+          setStatus("签名已生成", "ok");
+        } catch (err) {
+          setStatus(err.message, "error");
+        }
+      });
+
+      document.querySelector("#copyBtn").addEventListener("click", async () => {
+        try {
+          const signed = buildSignedPayload();
+          renderPreview(signed);
+          await copyText(buildCurl(signed));
+          setStatus("cURL 已复制", "ok");
+        } catch (err) {
+          setStatus(err.message, "error");
+        }
+      });
+
+      sendBtn.addEventListener("click", async () => {
+        let signed;
+
+        try {
+          signed = buildSignedPayload();
+          renderPreview(signed);
+        } catch (err) {
+          setStatus(err.message, "error");
+          return;
+        }
+
+        const controller = new AbortController();
+        const timeout = Number(timeoutEl.value || 15000);
+        const timer = setTimeout(() => controller.abort(), timeout);
+
+        sendBtn.disabled = true;
+        responseEl.textContent = "";
+        setStatus("请求中", "warn");
+
+        try {
+          const startedAt = performance.now();
+          const res = await fetch(urlEl.value.trim(), {
+            method: "POST",
+            headers: signed.headers,
+            body: JSON.stringify(signed.body),
+            signal: controller.signal,
+          });
+          const text = await res.text();
+          const cost = Math.round(performance.now() - startedAt);
+
+          responseEl.textContent = formatResponse(res.status, cost, text);
+          setStatus(`请求完成：HTTP ${res.status}，耗时 ${cost}ms`, res.ok ? "ok" : "warn");
+        } catch (err) {
+          responseEl.textContent = [
+            "浏览器请求失败。",
+            "",
+            "常见原因：目标接口未允许当前页面跨域访问，或本地 file:// 打开时被浏览器限制。",
+            "可以复制 cURL，或继续用 pressure.js 在 Node 环境中调试。",
+            "",
+            String(err.message || err),
+          ].join("\n");
+          setStatus("请求失败，可能是 CORS 或网络限制", "error");
+        } finally {
+          clearTimeout(timer);
+          sendBtn.disabled = false;
+        }
+      });
+
+      function buildSignedPayload() {
+        const token = tokenEl.value.trim();
+
+        if (!token) {
+          throw new Error("请先填写 e_token");
+        }
+
+        const body = parseJson(bodyEl.value, "请求参数 JSON");
+        const headers = parseJson(headersEl.value, "请求头 JSON");
+        const signSource = Object.keys(body)
+          .sort()
+          .filter((key) => key !== "key_sign")
+          .map((key) => `${key}=${body[key]}`)
+          .join("&");
+        const md5String = `${signSource}&key=${token}`;
+
+        body.key_sign = md5(md5String).toUpperCase();
+
+        if (!hasHeader(headers, "content-type")) {
+          headers["content-type"] = "application/json";
+        }
+
+        return { body, headers, md5String };
+      }
+
+      function renderPreview(signed) {
+        signSourceEl.textContent = signed.md5String;
+        signedBodyEl.textContent = JSON.stringify(signed.body, null, 2);
+      }
+
+      function parseJson(value, name) {
+        try {
+          return JSON.parse(value);
+        } catch (err) {
+          throw new Error(`${name} 解析失败：${err.message}`);
+        }
+      }
+
+      function hasHeader(headers, name) {
+        return Object.keys(headers).some((key) => key.toLowerCase() === name);
+      }
+
+      function formatResponse(status, cost, text) {
+        let body = text;
+
+        try {
+          body = JSON.stringify(JSON.parse(text), null, 2);
+        } catch (_) {}
+
+        return `HTTP ${status} | ${cost}ms\n\n${body}`;
+      }
+
+      function buildCurl(signed) {
+        const headerArgs = Object.entries(signed.headers)
+          .map(([key, value]) => `  -H '${escapeSingle(`${key}: ${value}`)}' \\`)
+          .join("\n");
+        const data = escapeSingle(JSON.stringify(signed.body));
+
+        return [`curl -X POST '${escapeSingle(urlEl.value.trim())}' \\`, headerArgs, `  --data '${data}'`].filter(Boolean).join("\n");
+      }
+
+      async function copyText(text) {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+
+      function escapeSingle(value) {
+        return String(value).replace(/'/g, "'\\''");
+      }
+
+      function setStatus(text, type) {
+        statusEl.textContent = text;
+        statusEl.className = `status ${type || ""}`.trim();
+      }
+
+      function md5(input) {
+        const bytes = new TextEncoder().encode(input);
+        let binary = "";
+
+        for (const byte of bytes) {
+          binary += String.fromCharCode(byte);
+        }
+
+        return hex(md51(binary));
+      }
+
+      function md51(s) {
+        const n = s.length;
+        const state = [1732584193, -271733879, -1732584194, 271733878];
+        let i;
+
+        for (i = 64; i <= n; i += 64) {
+          md5cycle(state, md5blk(s.substring(i - 64, i)));
+        }
+
+        s = s.substring(i - 64);
+
+        const tail = Array(16).fill(0);
+
+        for (i = 0; i < s.length; i++) {
+          tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
+        }
+
+        tail[i >> 2] |= 0x80 << ((i % 4) << 3);
+
+        if (i > 55) {
+          md5cycle(state, tail);
+          tail.fill(0);
+        }
+
+        tail[14] = n * 8;
+        md5cycle(state, tail);
+
+        return state;
+      }
+
+      function md5blk(s) {
+        const blocks = [];
+
+        for (let i = 0; i < 64; i += 4) {
+          blocks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24);
+        }
+
+        return blocks;
+      }
+
+      const MD5_S = [
+        7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16,
+        23, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21,
+      ];
+      const MD5_K = [
+        -680876936, -389564586, 606105819, -1044525330, -176418897, 1200080426, -1473231341, -45705983, 1770035416, -1958414417, -42063, -1990404162, 1804603682, -40341101,
+        -1502002290, 1236535329, -165796510, -1069501632, 643717713, -373897302, -701558691, 38016083, -660478335, -405537848, 568446438, -1019803690, -187363961, 1163531501,
+        -1444681467, -51403784, 1735328473, -1926607734, -378558, -2022574463, 1839030562, -35309556, -1530992060, 1272893353, -155497632, -1094730640, 681279174, -358537222,
+        -722521979, 76029189, -640364487, -421815835, 530742520, -995338651, -198630844, 1126891415, -1416354905, -57434055, 1700485571, -1894986606, -1051523, -2054922799,
+        1873313359, -30611744, -1560198380, 1309151649, -145523070, -1120210379, 718787259, -343485551,
+      ];
+
+      function md5cycle(x, k) {
+        let [a, b, c, d] = x;
+
+        for (let i = 0; i < 64; i++) {
+          let f;
+          let g;
+
+          if (i < 16) {
+            f = (b & c) | (~b & d);
+            g = i;
+          } else if (i < 32) {
+            f = (d & b) | (~d & c);
+            g = (5 * i + 1) % 16;
+          } else if (i < 48) {
+            f = b ^ c ^ d;
+            g = (3 * i + 5) % 16;
+          } else {
+            f = c ^ (b | ~d);
+            g = (7 * i) % 16;
+          }
+
+          const next = d;
+          d = c;
+          c = b;
+          b = add32(b, rotateLeft(add32(add32(a, f), add32(MD5_K[i], k[g])), MD5_S[i]));
+          a = next;
+        }
+
+        x[0] = add32(x[0], a);
+        x[1] = add32(x[1], b);
+        x[2] = add32(x[2], c);
+        x[3] = add32(x[3], d);
+      }
+
+      function hex(x) {
+        return x.map(rhex).join("");
+      }
+
+      function rhex(n) {
+        let s = "";
+
+        for (let j = 0; j < 4; j++) {
+          s += ((n >> (j * 8 + 4)) & 0x0f).toString(16) + ((n >> (j * 8)) & 0x0f).toString(16);
+        }
+
+        return s;
+      }
+
+      function add32(a, b) {
+        return (a + b) & 0xffffffff;
+      }
+
+      function rotateLeft(value, count) {
+        return (value << count) | (value >>> (32 - count));
+      }
+    </script>
+  </body>
+</html>
