@@ -14,8 +14,8 @@ const DEFAULT_TARGET = {
     "content-type": "application/json",
   },
   body: JSON.stringify({
-    jde_id_out: "980",
-    baisheng_id_in: "7799",
+    jde_id_out: "67800",
+    baisheng_id_in: "100011",
     business_main_no: "1791231237831501",
     order_amt: "500",
     discount_amt: "150",
